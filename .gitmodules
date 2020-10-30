@@ -1,0 +1,3 @@
+[submodule "polyidus/polyidus"]
+	path = polyidus/polyidus
+	url = https://github.com/szsctt/polyidus.git
