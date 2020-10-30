@@ -5,6 +5,8 @@ Put viral integration tools in containers in order to make them easier to use/mo
 ## Test data
 
 The test data is in `data`.  
+NOT CURRENTLY THERE - it's stored on /scratch1, which is currently having issues (as of 30/10/2020) - this will be added ASAP
+
 
 ### Reads
 The folder `data/reads` contains reads in fastq format.  These are from simulated integrations of the host into the virus.
