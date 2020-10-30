@@ -5,7 +5,6 @@ Put viral integration tools in containers in order to make them easier to use/mo
 ## Test data
 
 The test data is in `data`.  
-NOT CURRENTLY THERE - it's stored on /scratch1, which is currently having issues (as of 30/10/2020) - this will be added ASAP
 
 
 ### Reads
@@ -14,7 +13,7 @@ The folder `data/reads` contains reads in fastq format.  These are from simulate
 ### References
 
 The host and viral references (fasta) are in `data/references`.  We're only interested in tools that can use custom references - if they require a particular host or viral reference, don't bother.
-
+The host virus is `data/references/test_human.fa`, and the virus is `data/references/test_AAV.fa`
 
 ## Tools
 
