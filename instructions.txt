@@ -1,5 +1,10 @@
 
+Build docker image
+docker build -t virusfinder .
+
+Environment variables for Fasta file
 export FQ1='data/reads/cond0.rep01.fq'
 export FQ2='data/reads/cond0.rep02.fq'
-Run command
+
+Docker Run command
 docker run -t -i -e FQ1 -e FQ2 virusfinder
