@@ -43,8 +43,7 @@ RUN apt-get -y update && \
  RUN wget https://vorboss.dl.sourceforge.net/project/samtools/samtools/0.1.18/samtools-0.1.18.tar.bz2 &&\
    tar -xvf samtools-0.1.18.tar.bz2 &&\
    cd samtools-0.1.18 &&\
-   make CXXFLAGS=-fPIC CFLAGS=-fPIC CPPFLAGS=-fPIC &&\
-   export SAMTOOLS=`/samtools-0.1.18/`
+   make CXXFLAGS=-fPIC CFLAGS=-fPIC CPPFLAGS=-fPIC
 
 RUN wget https://sourceforge.net/projects/svdetect/files/SVDetect/0.80/SVDetect_r0.8.tar.gz  &&\
      tar -xvf SVDetect_r0.8.tar.gz && \
@@ -66,11 +65,12 @@ RUN wget https://sourceforge.net/projects/bowtie-bio/files/bowtie/1.3.0/bowtie-1
  #  make install
  
 
- # Install perl modules
- #RUN apt-get install -y cpanminus
- RUN apt-get -y install make gcc libexpat1-dev
+# Install perl modules
+#RUN apt-get install -y cpanminus
+RUN apt-get -y install make gcc libexpat1-dev
 
- RUN cpan local::lib && \
+ENV SAMTOOLS="/samtools-0.1.18/"
+RUN cpan local::lib && \
  cpan App::cpanminus && \
  cpanm -n Time::Zone && \
  cpanm -n XML::DOM::XPath && \
