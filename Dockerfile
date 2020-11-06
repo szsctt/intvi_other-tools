@@ -26,12 +26,13 @@ RUN apt-get -y update && \
  apt-get -y install libncurses5-dev libncursesw5-dev  && \
  apt-get -y install cmake  && \
  apt-get -y install rsync  && \
- apt-get -y install openjdk-8-jre-headless
+ apt-get -y install openjdk-8-jre-headless &&\
+ #apt-get -y install openjdk-7-jre-headless &&\ # required for trinity but not working
+ apt-get clean
 
  # Make work directory
  RUN mkdir -p /var/work &&\
     cd /var/work
-
 
  #Other dependancies
  RUN wget https://vorboss.dl.sourceforge.net/project/samtools/samtools/0.1.18/samtools-0.1.18.tar.bz2 &&\
@@ -43,14 +44,25 @@ RUN apt-get -y update && \
      tar -xvf SVDetect_r0.8.tar.gz && \
      rm SVDetect_r0.8.tar.gz
 
- RUN wget https://github.com/trinityrnaseq/trinityrnaseq/releases/download/v2.11.0/trinityrnaseq-v2.11.0.FULL.tar.gz &&\
-   tar -xvf trinityrnaseq-v2.11.0.FULL.tar.gz &&\
-   cd trinityrnaseq-v2.11.0 &&\
-   make   &&\
-   make plugins  &&\
-   make install
+# old trinity requires g++ 4 to compile
+# https://github.com/trinityrnaseq/trinityrnaseq/issues/47
+RUN echo "deb http://dk.archive.ubuntu.com/ubuntu/ xenial main" >> /etc/apt/sources.list &&\
+	echo "deb http://dk.archive.ubuntu.com/ubuntu/ xenial universe" >> /etc/apt/sources.list  &&\
+	apt update && apt install -y g++-4.9 &&\
+	update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 10
 
+ RUN wget https://sourceforge.net/projects/trinityrnaseq/files/PREV_CONTENTS/previous_releases/trinityrnaseq_r2013-02-16.tgz &&\
+ 	tar -xvf trinityrnaseq_r2013-02-16.tgz &&\
+ 	cd trinityrnaseq_r2013-02-16 &&\
+ 	make
 
+ #RUN wget https://github.com/trinityrnaseq/trinityrnaseq/releases/download/v2.11.0/trinityrnaseq-v2.11.0.FULL.tar.gz &&\
+ #  tar -xvf trinityrnaseq-v2.11.0.FULL.tar.gz &&\
+ #  cd trinityrnaseq-v2.11.0 &&\
+ #  make   &&\
+ #  make plugins  &&\
+ #  make install
+ 
 
  # Install perl modules
  #RUN apt-get install -y cpanminus
