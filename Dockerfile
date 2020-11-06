@@ -1,5 +1,8 @@
 # Dockerfile for VERSE/VirusFinder2.0
-FROM ubuntu:18.04
+
+#FROM ubuntu:18.04
+FROM ubuntu:14.04
+
 
 ENV TZ=Australia/Sydney
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -26,21 +29,22 @@ RUN apt-get -y update && \
  apt-get -y install libncurses5-dev libncursesw5-dev  && \
  apt-get -y install cmake  && \
  apt-get -y install rsync  && \
- apt-get -y install openjdk-8-jre-headless &&\
- #apt-get -y install openjdk-7-jre-headless &&\ # required for trinity but not working
+ apt-get -y install unzip  && \ 
+ #apt-get -y install openjdk-8-jre-headless &&\
+ apt-get -y install openjdk-7-jre-headless &&\
  apt-get clean
 
  # Make work directory
  RUN mkdir -p /var/work &&\
     cd /var/work
 
- #Other dependancies
+ #Other dependencies
  RUN wget https://vorboss.dl.sourceforge.net/project/samtools/samtools/0.1.18/samtools-0.1.18.tar.bz2 &&\
    tar -xvf samtools-0.1.18.tar.bz2 &&\
    cd samtools-0.1.18 &&\
    make
 
- RUN wget https://sourceforge.net/projects/svdetect/files/SVDetect/0.80/SVDetect_r0.8.tar.gz  &&\
+RUN wget https://sourceforge.net/projects/svdetect/files/SVDetect/0.80/SVDetect_r0.8.tar.gz  &&\
      tar -xvf SVDetect_r0.8.tar.gz && \
      rm SVDetect_r0.8.tar.gz
 
@@ -51,10 +55,13 @@ RUN echo "deb http://dk.archive.ubuntu.com/ubuntu/ xenial main" >> /etc/apt/sour
 	apt update && apt install -y g++-4.9 &&\
 	update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 10
 
- RUN wget https://sourceforge.net/projects/trinityrnaseq/files/PREV_CONTENTS/previous_releases/trinityrnaseq_r2013-02-16.tgz &&\
+RUN wget https://sourceforge.net/projects/trinityrnaseq/files/PREV_CONTENTS/previous_releases/trinityrnaseq_r2013-02-16.tgz &&\
  	tar -xvf trinityrnaseq_r2013-02-16.tgz &&\
  	cd trinityrnaseq_r2013-02-16 &&\
  	make
+ 	
+RUN wget wget https://sourceforge.net/projects/bowtie-bio/files/bowtie/1.3.0/bowtie-1.3.0-linux-x86_64.zip &&\
+	unzip bowtie-1.3.0-linux-x86_64.zip 
 
  #RUN wget https://github.com/trinityrnaseq/trinityrnaseq/releases/download/v2.11.0/trinityrnaseq-v2.11.0.FULL.tar.gz &&\
  #  tar -xvf trinityrnaseq-v2.11.0.FULL.tar.gz &&\
@@ -80,18 +87,19 @@ RUN echo "deb http://dk.archive.ubuntu.com/ubuntu/ xenial main" >> /etc/apt/sour
 
 
 # Export home environments if needed to be done outside config file
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64/
 RUN export JAVA_HOME
 ENV PATH="/samtools-0.1.18:${PATH}"
-ENV PATH="/trinityrnaseq-v2.11.0:${PATH}"
+ENV PATH="/trinityrnaseq_r2013-02-16:${PATH}"
+ENV PATH="/bowtie-1.3.0-linux-x86_64:${PATH}"
 
 #Copy tool Code and reads data (CHange path based on local setting)
 COPY  VERSE/VirusFinder2.0/ /var/work/VirusFinder2.0/
 COPY   data/  /var/work/data/
 
 #Check files in current context
- RUN ls -ltr /trinityrnaseq-v2.11.0
- RUN which Trinity
+ RUN ls -ltr /trinityrnaseq_r2013-02-16
+ RUN which Trinity.pl
 
 
  # Create docker run script, this pulls the code from git repo and invokes it
@@ -111,7 +119,7 @@ RUN echo 'echo Processing Code..........' > /root/config.txt && \
   echo 'blastn_bin = /usr/bin/blastn' >> /root/config.txt && \
   echo 'bowtie_bin = /usr/bin/bowtie2' >> /root/config.txt && \
   echo 'bwa_bin = /usr/bin/bwa' >> /root/config.txt && \
-  echo 'trinity_script = /trinityrnaseq-v2.11.0/Trinity' >> /root/config.txt && \
+  echo 'trinity_script = /trinityrnaseq_r2013-02-16/Trinity.pl' >> /root/config.txt && \
   echo 'SVDetect_dir = /SVDetect_r0.8' >> /root/config.txt && \
   echo 'virus_database = /var/work/data/references/test_AAV.fa' >> /root/config.txt && \
   echo 'bowtie_index_human = /var/work/data/bowtie-index/test_human' >> /root/config.txt && \
