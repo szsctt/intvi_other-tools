@@ -33,6 +33,7 @@ RUN apt-get -y update && \
  apt-get -y install unzip  && \
  #apt-get -y install openjdk-8-jre-headless &&\
  apt-get -y install openjdk-7-jre-headless &&\
+ apt-get -y install mailutils &&\
  apt-get clean
 
  # Make work directory
@@ -43,7 +44,8 @@ RUN apt-get -y update && \
  RUN wget https://vorboss.dl.sourceforge.net/project/samtools/samtools/0.1.18/samtools-0.1.18.tar.bz2 &&\
    tar -xvf samtools-0.1.18.tar.bz2 &&\
    cd samtools-0.1.18 &&\
-   make CXXFLAGS=-fPIC CFLAGS=-fPIC CPPFLAGS=-fPIC
+   make CXXFLAGS=-fPIC CFLAGS=-fPIC CPPFLAGS=-fPIC &&\
+   cd .. && rm samtools-0.1.18.tar.bz2
 
 RUN wget https://sourceforge.net/projects/svdetect/files/SVDetect/0.80/SVDetect_r0.8.tar.gz  &&\
      tar -xvf SVDetect_r0.8.tar.gz && \
@@ -52,10 +54,12 @@ RUN wget https://sourceforge.net/projects/svdetect/files/SVDetect/0.80/SVDetect_
 RUN wget https://sourceforge.net/projects/trinityrnaseq/files/PREV_CONTENTS/previous_releases/trinityrnaseq_r2013-02-16.tgz &&\
  	tar -xvf trinityrnaseq_r2013-02-16.tgz &&\
  	cd trinityrnaseq_r2013-02-16 &&\
- 	make
+ 	make &&\
+ 	cd .. && rm trinityrnaseq_r2013-02-16.tgz
  	
 RUN wget https://sourceforge.net/projects/bowtie-bio/files/bowtie/1.3.0/bowtie-1.3.0-linux-x86_64.zip &&\
-	unzip bowtie-1.3.0-linux-x86_64.zip 
+	unzip bowtie-1.3.0-linux-x86_64.zip &&\
+	rm bowtie-1.3.0-linux-x86_64.zip
 
  #RUN wget https://github.com/trinityrnaseq/trinityrnaseq/releases/download/v2.11.0/trinityrnaseq-v2.11.0.FULL.tar.gz &&\
  #  tar -xvf trinityrnaseq-v2.11.0.FULL.tar.gz &&\
@@ -78,7 +82,9 @@ RUN cpan local::lib && \
  cpanm Bio::DB::EUtilities && \
  cpanm Bio::DB::Sam  && \
  cpanm Bio::DB::Sam::Constants && \
- cpanm Config::General
+ cpanm Config::General &&\
+ cpanm Tie::IxHash &&\
+ cpanm Parallel::ForkManager
 
 
 # Export home environments if needed to be done outside config file
