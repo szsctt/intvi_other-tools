@@ -1,0 +1,10 @@
+# Make sure to have data and tool scripts in the directory where dockerfile is running from.
+Build docker image
+docker build -t seeksv .
+
+Environment variables for Fasta file
+export VAR1='normal.bam'
+export VAR2='normal'
+
+Docker Run command
+docker run -t -i -e VAR1 -e VAR2 seeksv
