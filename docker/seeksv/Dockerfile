@@ -1,8 +1,11 @@
 # Dockerfile for seeksv
 
 FROM ubuntu:18.04
-#FROM ubuntu:14.04
 
+#  $ docker build . -t szsctt/seeksv:latest -t szsctt/seeksv:1
+#  $ docker run --rm -it --entrypoint /bin/bash szsctt/seeksv:latest
+#  $ docker push szsctt/seeksv:latest
+#  $ docker push szsctt/seeksv:1
 
 ENV TZ=Australia/Sydney
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -22,7 +25,7 @@ RUN apt-get -y update && \
  apt-get -y install cmake  && \
  apt-get -y install rsync  && \
  apt-get -y install unzip  && \
- apt-get -y install mailutils &&\
+ apt-get -y install default-jre &&\
  apt-get clean
 
  # Make work directory
@@ -37,11 +40,16 @@ RUN apt-get -y update && \
    make CXXFLAGS=-fPIC CFLAGS=-fPIC CPPFLAGS=-fPIC &&\
    cd .. && rm samtools-1.11.tar.bz2
 
+RUN mkdir picard &&\
+ cd picard &&\
+ wget https://github.com/broadinstitute/picard/releases/download/2.23.8/picard.jar
 
 # Export home environments if needed to be done outside config file
-ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64/
+ENV JAVA_HOME /usr/bin/java
 RUN export JAVA_HOME
 ENV PATH="/samtools-1.11:${PATH}"
+ENV PICARD /picard/picard.jar
+RUN export PICARD
 
 #Check files in current context
  RUN ls -ltr
@@ -50,7 +58,7 @@ ENV PATH="/samtools-1.11:${PATH}"
 #Copy tool Code and reads data (CHange path based on local setting)
 #COPY  seeksv /var/work/seeksv/
 COPY  seeksv/seeksv /var/work/seeksv/
-COPY   data/  /var/work/data/
+#COPY   data/  /var/work/data/
 
 
 
