@@ -1,6 +1,6 @@
 [submodule "polyidus/polyidus"]
-	path = polyidus/polyidus
+	path = docker/polyidus/polyidus
 	url = https://github.com/szsctt/polyidus.git
 [submodule "vifi/ViFi"]
-	path = vifi/ViFi
+	path = docker/vifi/ViFi
 	url = https://github.com/szsctt/ViFi.git
