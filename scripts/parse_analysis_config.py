@@ -35,6 +35,7 @@ def parse_analysis_config(config):
 	
 	for dataset in config.keys():
 		
+		pdb.set_trace()
 		if 'polyidus_params' in config[dataset]:
 			analysis_conditions += make_polyidus_rows(config, dataset)
 			
@@ -155,14 +156,14 @@ def make_polyidus_rows(config, dataset):
 	else:
 		aligners = ['bowtie2']
 				
-		for host, virus, aligner in itertools.product(
+	for host, virus, aligner in itertools.product(
 																		config[dataset]['analysis_hosts'].keys(),
 																		config[dataset]['analysis_viruses'].keys(),
 																		aligners):
-			# give this analysis condition a name
-			condition = f"{dataset}_polyidus{i}"
+		# give this analysis condition a name
+		condition = f"{dataset}_polyidus{i}"
 
-			rows.append({
+		rows.append({
 					'experiment' : dataset,
 					'host' 			 : host,
 					'host_fasta' : config[dataset]['analysis_hosts'][host],
@@ -173,7 +174,7 @@ def make_polyidus_rows(config, dataset):
 					'merge'			 : 0,
 					'tool'			 : 'polyidus',
 					})	
-			i += 1
+		i += 1
 	return rows
 
 def get_bool_value_from_config(config, dataset, key, default):
