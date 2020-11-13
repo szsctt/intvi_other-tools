@@ -71,7 +71,7 @@ rule all:
 
 include: "snakemake_rules/polyidus.smk"
 
-#include: "snakemake_rules/seeksv.smk"
+include: "snakemake_rules/seeksv.smk"
 
 include: "snakemake_rules/verse.smk"
 

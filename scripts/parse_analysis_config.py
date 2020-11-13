@@ -4,6 +4,26 @@ import pandas as pd
 from os import path
 from glob import glob
 
+# defaults
+polyidus_default_aligner = ['bowtie2']
+polyidus_default_trim = [False]
+
+vifi_default_trim = [False]
+
+seeksv_default_trim = [False]
+seeksv_default_dedup = [False]
+
+verse_default_trim = [False]
+verse_default_detection_mode = ['sensitive']
+verse_default_flank_region_size = [4000]
+verse_default_sensitivity_level = [1]
+verse_default_min_contig_length = [300]
+verse_default_blastn_evalue_thrd = [0.05]
+verse_default_similarity_thrd = [0.8]
+verse_default_chop_read_length = [25]
+verse_default_minIdentity = [80]
+
+
 def parse_analysis_config(config):
 	
 	# global parameters (defaults for this dataset) may be specified using a 'global' key
@@ -26,7 +46,8 @@ def parse_analysis_config(config):
 	column_names = ('experiment', 'exp', 'analysis_condition', 
 									'tool', 'host', 'host_fasta',
 									'virus', 'virus_fasta', 'read_folder', 
-									'R1_suffix', 'R2_suffix', 'outdir', 'bam_suffix', 
+									'R1_suffix', 'R2_suffix', 'outdir', 'bam_suffix',
+									'adapter_1', 'adapter_2', 'merge', 'trim', 'dedup',
 									'host_mappability', 'host_mappability_exclude', 
 									'host_genes', 'host_exons', 'host_oncogenes', 
 									'host_centromeres', 'host_conserved_regions',
@@ -49,6 +70,8 @@ def parse_analysis_config(config):
 		if 'verse_params' in config[dataset]:
 			analysis_conditions += make_verse_rows(config, dataset)
 
+		if 'seeksv_params' in config[dataset]:
+			analysis_conditions += make_seeksv_rows(config, dataset)			
 	
 	# make data frame 
 	return pd.DataFrame(analysis_conditions, columns = column_names)
@@ -58,29 +81,47 @@ def make_verse_rows(config, dataset):
 	rows = []
 	
 	# paramters should be lists, so that we can do combinations of all
-	assert hasattr(config[dataset]['verse_params']['detection_mode'], '__iter__')
-	assert hasattr(config[dataset]['verse_params']['flank_region_size'], '__iter__')
-	assert hasattr(config[dataset]['verse_params']['sensitivity_level'], '__iter__')
-	assert hasattr(config[dataset]['verse_params']['min_contig_length'], '__iter__')
-	assert hasattr(config[dataset]['verse_params']['blastn_evalue_thrd'], '__iter__')	
-	assert hasattr(config[dataset]['verse_params']['similarity_thrd'], '__iter__')
-	assert hasattr(config[dataset]['verse_params']['chop_read_length'], '__iter__')
-	assert hasattr(config[dataset]['verse_params']['minIdentity'], '__iter__')
+	trim_list = get_list_with_default(config[dataset]['verse_params'], 
+																		'trim', verse_default_trim, 'verse_params')	
+	detection_mode_list = get_list_with_default(config[dataset]['verse_params'], 
+																							'detection_mode', verse_default_detection_mode, 'verse_params')	
+	flank_region_size_list = get_list_with_default(config[dataset]['verse_params'], 
+																							'flank_region_size', 
+																							verse_default_flank_region_size , 'verse_params')	
+	sensitivity_level_list = get_list_with_default(config[dataset]['verse_params'], 
+																							'sensitivity_level', 
+																							verse_default_sensitivity_level, 'verse_params')		
+	min_contig_length_list = get_list_with_default(config[dataset]['verse_params'], 
+																							'min_contig_length', 
+																							verse_default_min_contig_length, 'verse_params')
+	blastn_evalue_thrd_list = get_list_with_default(config[dataset]['verse_params'], 
+																							'blastn_evalue_thrd', 
+																							verse_default_blastn_evalue_thrd, 'verse_params')
+	similarity_thrd_list = get_list_with_default(config[dataset]['verse_params'], 
+																							'similarity_thrd', 
+																							verse_default_similarity_thrd, 'verse_params')
+	chop_read_length_list = get_list_with_default(config[dataset]['verse_params'], 
+																							'chop_read_length', 
+																							verse_default_chop_read_length, 'verse_params')
+	minIdentity_list = get_list_with_default(config[dataset]['verse_params'], 
+																							'minIdentity', 
+																							verse_default_minIdentity, 'verse_params')
 
  
 	# each combination of these are a unique 'analysis condition' for our pipeline
 	i = 0 
-	for host, virus, detection_mode, flank_region_size, sensitivity_level, min_contig_length, blastn_evalue_thrd, similarity_thrd, chop_read_length, minIdentity in itertools.product(
+	for host, virus, trim, detection_mode, flank_region_size, sensitivity_level, min_contig_length, blastn_evalue_thrd, similarity_thrd, chop_read_length, minIdentity in itertools.product(
 																		config[dataset]['analysis_hosts'].keys(),
 																		config[dataset]['analysis_viruses'].keys(),
-																		config[dataset]['verse_params']['detection_mode'], 
-																		config[dataset]['verse_params']['flank_region_size'], 
-																		config[dataset]['verse_params']['sensitivity_level'],
-																		config[dataset]['verse_params']['min_contig_length'],
-																		config[dataset]['verse_params']['blastn_evalue_thrd'],
-																		config[dataset]['verse_params']['similarity_thrd'],
-																		config[dataset]['verse_params']['chop_read_length'],
-																		config[dataset]['verse_params']['minIdentity'],
+																		trim_list,
+																		detection_mode_list,
+																		flank_region_size_list,
+																		sensitivity_level_list,
+																		min_contig_length_list,
+																		blastn_evalue_thrd_list,
+																		similarity_thrd_list,
+																		chop_read_length_list,
+																		minIdentity_list
 																		):
 		
 		condition = f"{dataset}_verse{i}"
@@ -99,6 +140,9 @@ def make_verse_rows(config, dataset):
 				'similarity_thrd'   : similarity_thrd,
 				'chop_read_length'  : chop_read_length,
 				'minIdentity'       : minIdentity,
+				'trim'              : trim,
+				'merge'             : 0,
+				'dedup'             : 0,
 				'tool'			 : 'verse',	
 			})
 		i += 1
@@ -123,9 +167,10 @@ def make_vifi_rows(config, dataset):
 			print(f"one or more of the required files ({host_file_keys}) for host {host} is not specfied: skipping ViFi for host {host}")
 			continue
 		hosts_to_use.append(host)
-									
+		
+	trim_list = get_list_with_default(config[dataset]['vifi_params'], 'trim', vifi_default_trim, 'vifi_params')								
 
-	for host, virus in itertools.product(hosts_to_use, config[dataset]['analysis_viruses'].keys()):
+	for host, virus, trim in itertools.product(hosts_to_use, config[dataset]['analysis_viruses'].keys(), trim_list):
 		condition = f"{dataset}_vifi{i}"
 		rows.append({
 				'experiment' : dataset,
@@ -142,7 +187,10 @@ def make_vifi_rows(config, dataset):
 				'virus'      : virus,		
 				'virus_fasta': config[dataset]['analysis_viruses'][virus],	
 				'analysis_condition': condition,
-				'tool'			 : 'vifi',			
+				'tool'			 : 'vifi',	
+				'trim'			 : trim,
+				'merge'			 : 0,
+				'dedup'      : 0,	
 				})
 		i += 1
 	return add_read_info(config, dataset, rows)
@@ -153,17 +201,22 @@ def make_polyidus_rows(config, dataset):
 	rows = []
 	i = 0
 	
-	# are we trying multiple aligners?
-	if 'aligner' in config[dataset]['polyidus_params']:
-		assert hasattr(config[dataset]['polyidus_params']['aligner'], '__iter__')
-		aligners = config[dataset]['polyidus_params']['aligner']
-	else:
-		aligners = ['bowtie2']
+	trim_list = get_list_with_default(config[dataset]['polyidus_params'], 
+																		'trim', 
+																		polyidus_default_trim,
+																		'polyidus_params')
+	
+	# are we trying multiple aligners?			
+	aligners = get_list_with_default(config[dataset]['polyidus_params'], 
+																		'aligner', 
+																		polyidus_default_aligner,
+																		'polyidus_params')
 				
-	for host, virus, aligner in itertools.product(
+	for host, virus, aligner, trim in itertools.product(
 																		config[dataset]['analysis_hosts'].keys(),
 																		config[dataset]['analysis_viruses'].keys(),
-																		aligners):
+																		aligners,
+																		trim_list):
 		# give this analysis condition a name
 		condition = f"{dataset}_polyidus{i}"
 
@@ -176,10 +229,48 @@ def make_polyidus_rows(config, dataset):
 					'analysis_condition': condition,
 					'aligner'		 : aligner,
 					'merge'			 : 0,
+					'trim'       : trim,
+					'dedup'      : 0,
 					'tool'			 : 'polyidus',
 					})	
 		i += 1
 	return add_read_info(config, dataset, rows)
+	
+def make_seeksv_rows(config, dataset):
+	#### parameters for polyidus ####
+	rows = []
+	i = 0
+	
+	trim = get_list_with_default(config[dataset]['seeksv_params'], 'trim', seeksv_default_trim, 'seeksv_params')
+	dedup = get_list_with_default(config[dataset]['seeksv_params'], 'dedup', seeksv_default_dedup, 'seeksv_params')
+	
+	trim_list = [1 if entry is True else 0 for entry in trim]
+	dedup_list = [1 if entry is True else 0 for entry in dedup]	
+	
+	for host, virus, trim, dedup in itertools.product(
+																		config[dataset]['analysis_hosts'].keys(),
+																		config[dataset]['analysis_viruses'].keys(),
+																		trim_list,
+																		dedup_list):
+		
+		# give this analysis condition a name
+		condition = f"{dataset}_seeksv{i}"
+
+		rows.append({
+					'experiment' : dataset,
+					'host' 			 : host,
+					'host_fasta' : config[dataset]['analysis_hosts'][host],
+					'virus'      : virus,
+					'virus_fasta': config[dataset]['analysis_viruses'][virus],
+					'analysis_condition': condition,
+					'trim'			 : trim,
+					'merge'			 : 0,
+					'dedup'      : dedup,
+					'tool'			 : 'seeksv',
+					})	
+		i += 1
+	return add_read_info(config, dataset, rows)
+
 
 def get_bool_value_from_config(config, dataset, key, default):
 	if key not in config[dataset]:
@@ -199,6 +290,8 @@ def add_read_info(config, dataset, rows):
  		R1_suffix = config[dataset].get('R1_suffix')
  		R2_suffix = config[dataset].get('R2_suffix')
  		bam_suffix = config[dataset].get('bam_suffix')
+ 		adapter_1 = config[dataset].get('adapter_1')
+ 		adapter_2 = config[dataset].get('adapter_2')
  		
  		for row in rows:
  			row['read_folder'] = read_folder
@@ -206,6 +299,8 @@ def add_read_info(config, dataset, rows):
  			row['R1_suffix'] = R1_suffix
  			row['R2_suffix'] = R2_suffix
  			row['bam_suffix'] = bam_suffix
+ 			row['adapter_1'] = adapter_1
+ 			row['adapter_2'] = adapter_2
  			
  		return rows
 	
@@ -223,5 +318,11 @@ def get_samples(config):
 	return samples
 		
 		
+def get_list_with_default(parent_dict, list_key, default, name):
+	if list_key not in parent_dict:
+		print(f"paramter {list_key} not specified for {name}: using default {default}")
+		return default
 		
-		
+	assert hasattr(parent_dict[list_key], '__iter__')
+	return parent_dict[list_key]
+

@@ -6,4 +6,4 @@ eval "$(conda shell.bash hook)"
 conda activate snakemake
 
 cd ..
-snakemake -np --cores 1 --configfile test/config/test.yml --use-singularity 
+snakemake --cores 1 --configfile test/config/test.yml --use-singularity

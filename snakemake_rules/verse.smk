@@ -1,3 +1,4 @@
+import os
 
 #####################################################
 ###################### verse ########################
@@ -16,7 +17,7 @@ rule bwt2_verse:
 	container:
 		"docker://szsctt/verse:1"
 	params:
-		prefix = lambda wildcards, output: path.splitext(path.splitext(output[0])[0])[0]
+		prefix = lambda wildcards, output: os.path.splitext(os.path.splitext(output[0])[0])[0]
 	resources:
 		mem_mb= lambda wildcards, attempt, input: int(attempt * 5 * (os.stat(input.fasta).st_size/1e6)),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
@@ -34,7 +35,7 @@ rule blastplus_verse:
 	container:
 		"docker://szsctt/verse:1"
 	params:
-		prefix = lambda wildcards, output: path.splitext(output[0])[0]
+		prefix = lambda wildcards, output: os.path.splitext(output[0])[0]
 	resources:
 		mem_mb= lambda wildcards, attempt, input: int(attempt * 5 * (os.stat(input.fasta).st_size/1e6)),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
@@ -68,10 +69,10 @@ rule verse_config:
 	output:
 		config = "{outpath}/{dset}/{samp}.{host}.{virus}/config.txt",	
 	params:
-		host_bowtie = lambda wildcards, input: path.splitext(path.splitext(path.realpath(input.host_idx[0]))[0])[0],
-		virus_blast = lambda wildcards, input: path.splitext(path.realpath(input.virus_blast[0]))[0],
-		host_blast = lambda wildcards, input: path.splitext(path.realpath(input.host_blast[0]))[0],
-		virus_fa = lambda wilcards, input: path.realpath(input.virus_fasta),
+		host_bowtie = lambda wildcards, input: os.path.splitext(os.path.splitext(os.path.realpath(input.host_idx[0]))[0])[0],
+		virus_blast = lambda wildcards, input: os.path.splitext(os.path.realpath(input.virus_blast[0]))[0],
+		host_blast = lambda wildcards, input: os.path.splitext(os.path.realpath(input.host_blast[0]))[0],
+		virus_fa = lambda wilcards, input: os.path.realpath(input.virus_fasta),
 		detection_mode = lambda wildcards: analysis_df_value(wildcards, 'detection_mode'),
 		flank_region_size = lambda wildcards: int(analysis_df_value(wildcards, 'flank_region_size')),
 		sensitivity_level = lambda wildcards: int(analysis_df_value(wildcards, 'sensitivity_level')),
@@ -126,9 +127,9 @@ rule verse:
 		ints = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.txt",
 		fake_merged = temp("{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.merged.bed")
 	params:
-		workdir = lambda wildcards, output: path.dirname(path.realpath(output.output)),
+		workdir = lambda wildcards, output: os.path.dirname(os.path.realpath(output.output)),
 		currdir = lambda wildcards: os.getcwd(),
-		config = lambda wildcards, input: path.basename(input.config)
+		config = lambda wildcards, input: os.path.basename(input.config)
 	wildcard_constraints:
 		dset = ".+_verse\d+"
 	container:

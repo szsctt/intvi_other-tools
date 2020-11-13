@@ -15,21 +15,25 @@ test:
    # https://github.com/hoffmangroup/polyidus
    # note container contains my fork: https://github.com/szsctt/polyidus
    polyidus_params:
+     trim:
+      - True
      aligner:
       - "bowtie2"
       
    # run vifi
    vifi_params:
+     trim:
+      - True
      host_info:
        human: # fasta will be used from general analysis_hosts
-         mappability: "../../vifi-test/data_repo/GRCh38/hg38full_k35_noMM.mappability.bedgraph"
-         mappability_exclude: "../../data/references/GRCh38/ENCFF356LFX.bed"
-         genes: "../../data/references/GRCh38/hg38.gencode.v35.annotation.genes.gff3"
-         exons: "../../data/references/GRCh38/hg38.gencode.v35.annotation.exons.gff3"
-         oncogenes: "../../data/references/GRCh38/hg38.gencode.v35.annotation.genes.gff3"
-         centromeres: "../../data/references/GRCh38/centromeres.bed"
-         conserved_regions: "../../data/references/GRCh38/exclude.cnvnator_100bp.GRCh38.20170403.bed"
-         segdup: "../../data/references/GRCh38/genomicSuperDups.bed"
+         mappability: "../vifi-test/data_repo/GRCh38/hg38full_k35_noMM.mappability.bedgraph"
+         mappability_exclude: "../data/references/GRCh38/ENCFF356LFX.bed"
+         genes: "../data/references/GRCh38/hg38.gencode.v35.annotation.genes.gff3"
+         exons: "../data/references/GRCh38/hg38.gencode.v35.annotation.exons.gff3"
+         oncogenes: "../data/references/GRCh38/hg38.gencode.v35.annotation.genes.gff3"
+         centromeres: "../data/references/GRCh38/centromeres.bed"
+         conserved_regions: "../data/references/GRCh38/exclude.cnvnator_100bp.GRCh38.20170403.bed"
+         segdup: "../data/references/GRCh38/genomicSuperDups.bed"
      
    # run verse
    # https://bioinfo.uth.edu/VirusFinder/VirusFinder-manual.pdf?csrt=2093584511125027598
@@ -50,5 +54,11 @@ test:
       - 25
      minIdentity:
       - 80     
-  
-
+     trim:
+      - True
+ 
+   seeksv_params:
+     trim:
+      - True
+     dedup:
+      - True

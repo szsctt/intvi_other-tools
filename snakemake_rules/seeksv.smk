@@ -27,8 +27,7 @@ rule align_seeksv_all:
 		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.bam",
 		bai = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.bam.bai"
 	params:
-		mem_gb_sort = lambda wildcards, resources: int(resources.mem_mb / 1e3 / 3)
-		mem_gb_dup = lambda wildcards, resources: int(resources.mem_mb / 1e3 / 3)
+		prefix = lambda wildcards, input: os.path.splitext(input.idx[0])[0]	
 	threads: 8
 	resources:
 		mem_mb = 10000
@@ -36,37 +35,81 @@ rule align_seeksv_all:
 		"docker://szsctt/seeksv:1"	
 	shell:
 		"""
-		bwa mem {input.idx} {input.fastq1} {input.fastq2} |\
-		java -Xmx{params.mem_gb_sort}g -jar ${PICARD} SortSam \
+		bwa mem {params.prefix} {input.fastq1} {input.fastq2} | samtools sort -o {output.bam} -
+		samtools index {output.bam}
+		"""
+		
+rule dedup_seeksv:
+	input:
+		rules.align_seeksv_all.output.bam
+	output:
+		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.dup.bam",
+		metrics = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.dup.txt"
+	params:
+		mem_gb_sort = lambda wildcards, resources: int(resources.mem_mb / 1e3 / 3),
+		mem_gb_dup = lambda wildcards, resources: int(resources.mem_mb / 1e3 / 3),
+	resources:
+		mem_mb = 10000
+	container:
+		"docker://szsctt/seeksv:1"	
+	shell:
+		"""
+		java -Xmx{params.mem_gb_sort}g -jar ${{PICARD}} SortSam \
 			I=/dev/stdin \
-			MAX_RECORDS_IN_RAM=7000000 \
 			VALIDATION_STRINGENCY=LENIENT \
 			COMPRESSION_LEVEL=0 \
 			O=/dev/stdout \
-			SORT_ORDER=queryname | java -Xmx{mem_gb_dup}g -jar ${PICARD} MarkDuplicates \
+			SORT_ORDER=queryname | java -Xmx{params.mem_gb_dup}g -jar ${{PICARD}} MarkDuplicates \
 			I=/dev/stdin \
 			VALIDATION_STRINGENCY=LENIENT \
-			O=/dev/stdout | java -Xmx{params.mem_gb_sort}g -jar ${PICARD} SortSam \
-			I=/dev/stdin \
+			METRICS_FILE={output.metrics} \
+			O={output.bam}
+		"""
+		
+def get_seeksv_alignment(wildcards):
+	# if we want to do dedupliation
+	if analysis_df_value(wildcards, 'dedup') == 1:
+		return rules.dedup_seeksv.output.bam
+	
+	# no deduplication
+	return rules.align_seeksv_all.output.bam
+		
+rule sort_seeksv:
+	input:
+		bam = lambda wildcards: get_seeksv_alignment(wildcards)
+	output:
+		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.sorted.bam",
+		bai = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.sorted.bam.bai"
+	resources:
+		mem_mb = 10000
+	params:
+		mem_gb = lambda wildcards, resources: int(resources.mem_mb / 1e3) - 1
+	container:
+		"docker://szsctt/seeksv:1"	
+	shell:
+		"""
+		java -Xmx{params.mem_gb}g -jar ${{PICARD}} SortSam \
+			I={input.bam} \
 			MAX_RECORDS_IN_RAM=7000000 \
 			VALIDATION_STRINGENCY=LENIENT \
 			COMPRESSION_LEVEL=0 \
 			O={output.bam} \
 			SORT_ORDER=coordinate
+			
 		samtools index {output.bam}
 		"""
 		
 rule seeksv_getclip:
 	input:
-		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.bam",
-		bai = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.bam.bai"
+		bam = rules.sort_seeksv.output.bam,
+		bai = rules.sort_seeksv.output.bai
 	output: 
 		clip_fq = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.clip.fq.gz",
 		clip = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.clip.gz",
 		unmapped_1 = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.unmapped_1.fq.gz",
 		unmapped_2 = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.unmapped_2.fq.gz",	
 	params:
-		prefix = lambda wildcards, output: path.splitext(path.splitext(output.clip)[0])[0]
+		prefix = lambda wildcards, output: os.path.splitext(os.path.splitext(output.clip)[0])[0]
 	container:
 		"docker://szsctt/seeksv:1"
 	shell:
@@ -82,7 +125,7 @@ rule align_seeksv_clip:
 		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.clip.bam",
 		bai = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.clip.bam.bai"
 	params:
-		prefix = lambda wildcards, input: path.splitext(input.idx[0])[0]
+		prefix = lambda wildcards, input: os.path.splitext(input.idx[0])[0]
 	container:
 		"docker://szsctt/seeksv:1"
 	shell:
