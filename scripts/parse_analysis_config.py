@@ -24,7 +24,7 @@ def parse_analysis_config(config):
 
 	column_names = ('experiment', 'exp', 'analysis_condition', 'tool', 'host', 'host_fasta',
 									'virus', 'virus_fasta', 'bam_suffix',
-									'read_folder', 'R1_suffix', 'R2_suffix', 'outdir', 
+									'read_folder', 'R1_suffix', 'R2_suffix', 'outdir', 'bam_suffix', 
 									'host_mappability', 'host_mappability_exclude', 'host_genes', 'host_exons',
 									'host_oncogenes', 'host_centromeres', 'host_conserved_regions',
 									'host_segdup', 'detection_mode', 'flank_region_size', 'sensitivity_level', 
@@ -35,7 +35,6 @@ def parse_analysis_config(config):
 	
 	for dataset in config.keys():
 		
-		pdb.set_trace()
 		if 'polyidus_params' in config[dataset]:
 			analysis_conditions += make_polyidus_rows(config, dataset)
 			
@@ -44,7 +43,7 @@ def parse_analysis_config(config):
 			
 		if 'verse_params' in config[dataset]:
 			analysis_conditions += make_verse_rows(config, dataset)
-			
+
 	
 	# make data frame 
 	return pd.DataFrame(analysis_conditions, columns = column_names)
@@ -62,6 +61,7 @@ def make_verse_rows(config, dataset):
 	assert hasattr(config[dataset]['verse_params']['similarity_thrd'], '__iter__')
 	assert hasattr(config[dataset]['verse_params']['chop_read_length'], '__iter__')
 	assert hasattr(config[dataset]['verse_params']['minIdentity'], '__iter__')
+
  
 	# each combination of these are a unique 'analysis condition' for our pipeline
 	i = 0 
@@ -79,7 +79,6 @@ def make_verse_rows(config, dataset):
 																		):
 		
 		condition = f"{dataset}_verse{i}"
-		
 		rows.append({
 				'experiment' : dataset,
 				'host' 			: host,
@@ -98,7 +97,7 @@ def make_verse_rows(config, dataset):
 				'tool'			 : 'verse',	
 			})
 		i += 1
-	return rows
+	return add_read_info(config, dataset, rows)
 	
 
 def make_vifi_rows(config, dataset):
@@ -141,7 +140,7 @@ def make_vifi_rows(config, dataset):
 				'tool'			 : 'vifi',			
 				})
 		i += 1
-	return rows
+	return add_read_info(config, dataset, rows)
 
 
 def make_polyidus_rows(config, dataset):
@@ -175,7 +174,7 @@ def make_polyidus_rows(config, dataset):
 					'tool'			 : 'polyidus',
 					})	
 		i += 1
-	return rows
+	return add_read_info(config, dataset, rows)
 
 def get_bool_value_from_config(config, dataset, key, default):
 	if key not in config[dataset]:
@@ -187,3 +186,21 @@ def get_bool_value_from_config(config, dataset, key, default):
 		return 0
 	else:
 		raise ValueError(f"Boolean value for {key} in dataset {dataset} is neither True nor False.  Please specify one or the other")
+		
+def add_read_info(config, dataset, rows):
+		# add 'read_folder', 'R1_suffix', 'R2_suffix', 'outdir', 'bam_suffix', if they are defined
+ 		read_folder = config[dataset].get('read_directory')
+ 		outdir = config[dataset].get('read_directory')
+ 		R1_suffix = config[dataset].get('R1_suffix')
+ 		R2_suffix = config[dataset].get('R2_suffix')
+ 		bam_suffix = config[dataset].get('bam_suffix')
+ 		
+ 		for row in rows:
+ 			row['read_folder'] = read_folder
+ 			row['outdir'] = outdir
+ 			row['R1_suffix'] = R1_suffix
+ 			row['R2_suffix'] = R2_suffix
+ 			row['bam_suffix'] = bam_suffix
+ 			
+ 		return rows
+	
