@@ -22,13 +22,17 @@ def parse_analysis_config(config):
 	# can be set in our pipeline (merging, de-duplicaiton, bwa mem prarameters, etc), or
 	# the tool to be used in analysis
 
-	column_names = ('experiment', 'exp', 'analysis_condition', 'tool', 'host', 'host_fasta',
-									'virus', 'virus_fasta', 'bam_suffix',
-									'read_folder', 'R1_suffix', 'R2_suffix', 'outdir', 'bam_suffix', 
-									'host_mappability', 'host_mappability_exclude', 'host_genes', 'host_exons',
-									'host_oncogenes', 'host_centromeres', 'host_conserved_regions',
-									'host_segdup', 'detection_mode', 'flank_region_size', 'sensitivity_level', 
-									'min_contig_length', 'blastn_evalue_thrd', 'similarity_thrd', 
+	column_names = ('experiment', 'exp', 'analysis_condition', 
+									'tool', 'host', 'host_fasta',
+									'virus', 'virus_fasta', 'read_folder', 
+									'R1_suffix', 'R2_suffix', 'outdir', 'bam_suffix', 
+									'host_mappability', 'host_mappability_exclude', 
+									'host_genes', 'host_exons', 'host_oncogenes', 
+									'host_centromeres', 'host_conserved_regions',
+									'host_segdup', 'detection_mode', 
+									'flank_region_size', 'sensitivity_level', 
+									'min_contig_length', 'blastn_evalue_thrd', 
+									'similarity_thrd', 
 									'chop_read_length', 'minIdentity')		
 
 	analysis_conditions = []
