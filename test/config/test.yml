@@ -61,4 +61,4 @@ test:
      trim:
       - True
      dedup:
-      - True
+      - False
