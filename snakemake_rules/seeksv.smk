@@ -159,10 +159,30 @@ rule seeksv:
 		"""
 		/var/work/seeksv/seeksv getsv {input.bam_clip} {input.bam} {input.clip} {output.ints} {output.unmapped}
 		"""		
-		
+
+rule get_host_chroms:
+	input:
+		fa = lambda wildcards: ref_names[wildcards.host]
+	output:
+		fa = temp("{outpath}/seeksv_refs/data/{host}/{host}.fa"),
+		fai = temp("{outpath}/seeksv_refs/data/{host}/{host}.fa.fai"),
+		chromlist = "{outpath}/seeksv_refs/data/{host}/{host}.txt"
+	wildcard_constraints:
+		dset = ".+_seeksv\d+"
+	container:
+		"docker://szsctt/seeksv:1"
+	shell:
+			"""
+			cp {input.fa} {output.fa}
+			samtools faidx {output.fa}
+			awk 'BEGIN {{ ORS = " " }} {{a[$1]}} END {{for (i in a) print i}}' \
+				{output.fai} > {output.chromlist}
+			"""
+
 rule make_host_bed:
 	input:
-		ints = rules.seeksv.output.ints
+		ints = rules.seeksv.output.ints,
+		chromlist = rules.get_host_chroms.output.chromlist
 	output:
 		bed = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.host.bed"
 	wildcard_constraints:
@@ -171,8 +191,26 @@ rule make_host_bed:
 		"docker://szsctt/seeksv:1"
 	shell:
 		"""
-		touch {output.bed}
+		python3 scripts/write_seeksv_bed.py --seeksv-output {input.ints} --chromlist {input.chromlist} --output {output.bed}
 		"""	
 		
+rule merge_host_bed:
+	input:
+		bed = rules.make_host_bed.output.bed
+	output:
+		tmp = temp("{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.sorted.bed"),
+		merged = temp("{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.merged.bed")
+	params:
+		d = lambda wildcards: int(analysis_df_value(wildcards, 'merge_dist')),
+		n = lambda wildcards: int(analysis_df_value(wildcards, 'min_reads')),		
+	wildcard_constraints:
+		dset = ".+_seeksv\d+"
+	container:
+		"docker://szsctt/seeksv:1"	
+	shell:
+		"""
+		sort -k1,1 -k2,2n {input.bed} > {output.tmp}
+		bedtools merge -i {output.tmp} -d {params.d} -c 1 -o count | awk -F"\t" -v OFS="\t" '$4 >= {params.n}' > {output.merged}
+		"""
 		
 		
