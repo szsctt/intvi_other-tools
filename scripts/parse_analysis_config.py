@@ -286,7 +286,7 @@ def get_bool_value_from_config(config, dataset, key, default):
 def add_read_info(config, dataset, rows):
 		# add 'read_folder', 'R1_suffix', 'R2_suffix', 'outdir', 'bam_suffix', if they are defined
  		read_folder = config[dataset].get('read_directory')
- 		outdir = config[dataset].get('read_directory')
+ 		outdir = config[dataset].get('out_directory')
  		R1_suffix = config[dataset].get('R1_suffix')
  		R2_suffix = config[dataset].get('R2_suffix')
  		bam_suffix = config[dataset].get('bam_suffix')

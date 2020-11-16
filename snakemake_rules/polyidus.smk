@@ -23,8 +23,8 @@ rule bwt2_index:
 
 rule trim:
 	input:
-		r1 = lambda wildcards: get_input_reads(wildcards, '1'),
-		r2 = lambda wildcards: get_input_reads(wildcards, '2')
+		r1 = lambda wildcards: get_input_reads(wildcards, 1),
+		r2 = lambda wildcards: get_input_reads(wildcards, 2)
 	output:
 		proc_r1 = temp("{outpath}/{dset}/trimmed_reads/{samp}.1.fastq.gz"),
 		proc_r2 = temp("{outpath}/{dset}/trimmed_reads/{samp}.2.fastq.gz")

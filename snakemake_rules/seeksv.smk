@@ -158,5 +158,21 @@ rule seeksv:
 	shell:
 		"""
 		/var/work/seeksv/seeksv getsv {input.bam_clip} {input.bam} {input.clip} {output.ints} {output.unmapped}
-		cp {output.ints} {output.fake_merged}
 		"""		
+		
+rule make_host_bed:
+	input:
+		ints = rules.seeksv.output.ints
+	output:
+		bed = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.host.bed"
+	wildcard_constraints:
+		dset = ".+_seeksv\d+"
+	container:
+		"docker://szsctt/seeksv:1"
+	shell:
+		"""
+		touch {output.bed}
+		"""	
+		
+		
+		
