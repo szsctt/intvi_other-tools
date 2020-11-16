@@ -90,7 +90,6 @@ rule sort_seeksv:
 		"""
 		java -Xmx{params.mem_gb}g -jar ${{PICARD}} SortSam \
 			I={input.bam} \
-			MAX_RECORDS_IN_RAM=7000000 \
 			VALIDATION_STRINGENCY=LENIENT \
 			COMPRESSION_LEVEL=0 \
 			O={output.bam} \
@@ -114,7 +113,7 @@ rule seeksv_getclip:
 		"docker://szsctt/seeksv:1"
 	shell:
 		"""
-		seeksv getclip -o {params.prefix} {input.bam}
+		/var/work/seeksv/seeksv getclip -o {params.prefix} {input.bam}
 		"""
 		
 rule align_seeksv_clip:
@@ -122,8 +121,7 @@ rule align_seeksv_clip:
 		fq = rules.seeksv_getclip.output.clip_fq,
 		idx = rules.host_virus_index_seeksv.output.idx
 	output:
-		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.clip.bam",
-		bai = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.clip.bam.bai"
+		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.clip.bam"
 	params:
 		prefix = lambda wildcards, input: os.path.splitext(input.idx[0])[0]
 	container:
@@ -131,7 +129,6 @@ rule align_seeksv_clip:
 	shell:
 		"""
 		bwa mem  {params.prefix} {input.fq} | samtools view  -Sb -o {output.bam} -
-  		samtools index {output.bam}
 		"""
 
 rule seeksv:
@@ -149,6 +146,6 @@ rule seeksv:
 		dset = ".+_seeksv\d+"
 	shell:
 		"""
-		seeksv getsv {input.bam_clip} {input.bam} {input.clip} {output.ints} {output.unmapped}
+		/var/work/seeksv/seeksv getsv {input.bam_clip} {input.bam} {input.clip} {output.ints} {output.unmapped}
 		cp {output.ints} {output.fake_merged}
 		"""		
