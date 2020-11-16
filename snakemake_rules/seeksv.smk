@@ -4,14 +4,16 @@ rule host_virus_index_seeksv:
 		virus = lambda wildcards: ref_names[wildcards.virus],
 		host = lambda wildcards: ref_names[wildcards.host]
 	output:
-		fa = "{outpath}/vifi_refs/data/{virus}/{host}_{virus}.fas",
-		idx = multiext("{outpath}/vifi_refs/data/{virus}/{host}_{virus}.fas", ".amb", ".ann", ".bwt", ".pac", ".sa")
+		fa = "{outpath}/seeksv_refs/data/{virus}/{host}_{virus}.fas",
+		idx = multiext("{outpath}/seeksv_refs/data/{virus}/{host}_{virus}.fas", ".amb", ".ann", ".bwt", ".pac", ".sa")
 	container:
 		"docker://szsctt/seeksv:1"
 	resources:
 		mem_mb= lambda wildcards, attempt, input: int(attempt * 5 * (os.stat(input.host).st_size/1e6 + os.stat(input.virus).st_size/1e6)),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
+	wildcard_constraints:
+		dset = ".+_seeksv\d+"
 	shell:
 		"""
 		cat {input.virus} {input.host} > {output.fa}
@@ -32,7 +34,9 @@ rule align_seeksv_all:
 	resources:
 		mem_mb = 10000
 	container:
-		"docker://szsctt/seeksv:1"	
+		"docker://szsctt/seeksv:1"
+	wildcard_constraints:
+		dset = ".+_seeksv\d+"
 	shell:
 		"""
 		bwa mem {params.prefix} {input.fastq1} {input.fastq2} | samtools sort -o {output.bam} -
@@ -45,6 +49,8 @@ rule dedup_seeksv:
 	output:
 		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.dup.bam",
 		metrics = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.dup.txt"
+	wildcard_constraints:
+		dset = ".+_seeksv\d+"
 	params:
 		mem_gb_sort = lambda wildcards, resources: int(resources.mem_mb / 1e3 / 3),
 		mem_gb_dup = lambda wildcards, resources: int(resources.mem_mb / 1e3 / 3),
@@ -80,6 +86,8 @@ rule sort_seeksv:
 	output:
 		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.sorted.bam",
 		bai = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.sorted.bam.bai"
+	wildcard_constraints:
+		dset = ".+_seeksv\d+"
 	resources:
 		mem_mb = 10000
 	params:
@@ -107,6 +115,8 @@ rule seeksv_getclip:
 		clip = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.clip.gz",
 		unmapped_1 = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.unmapped_1.fq.gz",
 		unmapped_2 = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.unmapped_2.fq.gz",	
+	wildcard_constraints:
+		dset = ".+_seeksv\d+"
 	params:
 		prefix = lambda wildcards, output: os.path.splitext(os.path.splitext(output.clip)[0])[0]
 	container:
@@ -122,6 +132,8 @@ rule align_seeksv_clip:
 		idx = rules.host_virus_index_seeksv.output.idx
 	output:
 		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.clip.bam"
+	wildcard_constraints:
+		dset = ".+_seeksv\d+"
 	params:
 		prefix = lambda wildcards, input: os.path.splitext(input.idx[0])[0]
 	container:
@@ -138,12 +150,11 @@ rule seeksv:
 		bam_clip = rules.align_seeksv_clip.output.bam
 	output:
 		ints = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.txt",
-		unmapped = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.unmapped.clip.fq.gz",
-		fake_merged = temp("{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.merged.bed")
-	container:
-		"docker://szsctt/seeksv:1"
+		unmapped = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.unmapped.clip.fq.gz"
 	wildcard_constraints:
 		dset = ".+_seeksv\d+"
+	container:
+		"docker://szsctt/seeksv:1"
 	shell:
 		"""
 		/var/work/seeksv/seeksv getsv {input.bam_clip} {input.bam} {input.clip} {output.ints} {output.unmapped}
