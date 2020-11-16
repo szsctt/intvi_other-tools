@@ -3,14 +3,6 @@
 ##################### polyidus ######################
 #####################################################
 
-def analysis_df_value(wildcards, column_name):
-	
-	# get a value from the row of the df corresponding to this analysis condition
-	unique = f"{wildcards.dset}"
-
-	return analysis_df.loc[(analysis_df['analysis_condition'] == unique).idxmax(), column_name] 
-	
-
 rule bwt2_index:
 	input:
 		fasta = lambda wildcards: ref_names[wildcards.genome]
@@ -29,12 +21,25 @@ rule bwt2_index:
 	shell:
 		"bowtie2-build {input} {params.prefix}"
 
-def get_polyidus_reads(wildcards, read_num):
-	assert read_num in (1, 2)
-	if read_num == 1:
-		return f"{analysis_df_value(wildcards, 'read_folder')}/{wildcards.samp}{analysis_df_value(wildcards, 'R1_suffix')}"
-	if read_num == 2:
-		return f"{analysis_df_value(wildcards, 'read_folder')}/{wildcards.samp}{analysis_df_value(wildcards, 'R2_suffix')}"	
+rule trim:
+	input:
+		r1 = lambda wildcards: get_input_reads(wildcards, '1'),
+		r2 = lambda wildcards: get_input_reads(wildcards, '2')
+	output:
+		proc_r1 = temp("{outpath}/{dset}/trimmed_reads/{samp}.1.fastq.gz"),
+		proc_r2 = temp("{outpath}/{dset}/trimmed_reads/{samp}.2.fastq.gz")
+	conda:	
+		"../envs/seqprep.yml"
+	container:
+		"docker://szsctt/seqprep:1"
+	params:
+		A = lambda wildcards: analysis_df_value(wildcards, 'adapter_1'),
+		B = lambda wildcards: analysis_df_value(wildcards, 'adapter_2')
+	shell:
+		"""
+		SeqPrep -A {params.A} -B {params.B} -f {input.r1} -r {input.r2} -1 {output.proc_r1} -2 {output.proc_r2}
+		"""
+
 
 rule polyidus:
 	input:
@@ -74,3 +79,33 @@ rule polyidus:
 		cp {output.temp_ints} {output.ints}
 		cp {output.temp_ints} {output.fake_merged}
 		"""
+		
+		
+def analysis_df_value(wildcards, column_name):
+	
+	# get a value from the row of the df corresponding to this analysis condition
+	unique = f"{wildcards.dset}"
+
+	return analysis_df.loc[(analysis_df['analysis_condition'] == unique).idxmax(), column_name] 
+
+
+def get_input_reads(wildcards, read_num):
+	assert read_num in (1, 2)
+	if read_num == 1:
+		return f"{analysis_df_value(wildcards, 'read_folder')}/{wildcards.samp}{analysis_df_value(wildcards, 'R1_suffix')}"
+	if read_num == 2:
+		return f"{analysis_df_value(wildcards, 'read_folder')}/{wildcards.samp}{analysis_df_value(wildcards, 'R2_suffix')}"	
+
+
+def get_polyidus_reads(wildcards, read_num):
+
+	if analysis_df_value(wildcards, 'trim') == 1:
+		if read_num == 1:
+			return rules.trim.output.proc_r1
+		else:
+			return rules.trim.output.proc_r2
+	else:
+		if read_num == 1:
+			return get_input_reads(wildcards, 1)
+		else:
+			return get_input_reads(wildcards, 2)
