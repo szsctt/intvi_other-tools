@@ -37,6 +37,8 @@ rule align_seeksv_all:
 		"docker://szsctt/seeksv:1"
 	wildcard_constraints:
 		dset = ".+_seeksv\d+"
+	group:
+		"seeksv"
 	shell:
 		"""
 		bwa mem {params.prefix} {input.fastq1} {input.fastq2} | samtools sort -o {output.bam} -
@@ -57,7 +59,9 @@ rule dedup_seeksv:
 	resources:
 		mem_mb = 10000
 	container:
-		"docker://szsctt/seeksv:1"	
+		"docker://szsctt/seeksv:1"
+	group:
+		"seeksv"	
 	shell:
 		"""
 		java -Xmx{params.mem_gb_sort}g -jar ${{PICARD}} SortSam \
@@ -94,6 +98,8 @@ rule sort_seeksv:
 		mem_gb = lambda wildcards, resources: int(resources.mem_mb / 1e3) - 1
 	container:
 		"docker://szsctt/seeksv:1"	
+	group:
+		"seeksv"
 	shell:
 		"""
 		java -Xmx{params.mem_gb}g -jar ${{PICARD}} SortSam \
@@ -121,6 +127,8 @@ rule seeksv_getclip:
 		prefix = lambda wildcards, output: os.path.splitext(os.path.splitext(output.clip)[0])[0]
 	container:
 		"docker://szsctt/seeksv:1"
+	group:
+		"seeksv"
 	shell:
 		"""
 		/var/work/seeksv/seeksv getclip -o {params.prefix} {input.bam}
@@ -155,6 +163,8 @@ rule seeksv:
 		dset = ".+_seeksv\d+"
 	container:
 		"docker://szsctt/seeksv:1"
+	group:
+		"seeksv"
 	shell:
 		"""
 		/var/work/seeksv/seeksv getsv {input.bam_clip} {input.bam} {input.clip} {output.ints} {output.unmapped}
@@ -189,6 +199,8 @@ rule make_host_bed:
 		dset = ".+_seeksv\d+"
 	container:
 		"docker://szsctt/seeksv:1"
+	group:
+		"seeksv"
 	shell:
 		"""
 		python3 scripts/write_seeksv_bed.py --seeksv-output {input.ints} --chromlist {input.chromlist} --output {output.bed}
@@ -207,6 +219,8 @@ rule merge_host_bed:
 		dset = ".+_seeksv\d+"
 	container:
 		"docker://szsctt/seeksv:1"	
+	group:
+		"seeksv"
 	shell:
 		"""
 		sort -k1,1 -k2,2n {input.bed} > {output.tmp}
