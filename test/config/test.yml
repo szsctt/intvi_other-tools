@@ -3,7 +3,8 @@ test:
    out_directory: "test/out/"
    R1_suffix: "1.fq"
    R2_suffix: "2.fq"
-   
+   read1-adapt: "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA"
+   read2-adapt: "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"
    
    # analysis
    analysis_hosts: # if running vifi, there must be a matching key in analysis_hosts under vifi_params
