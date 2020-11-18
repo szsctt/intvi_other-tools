@@ -32,7 +32,9 @@ rule align_seeksv_all:
 		prefix = lambda wildcards, input: os.path.splitext(input.idx[0])[0]	
 	threads: 8
 	resources:
-		mem_mb = 10000
+		mem_mb= lambda wildcards, attempt: attempt * 10000,
+		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
+		nodes = 1
 	container:
 		"docker://szsctt/seeksv:1"
 	wildcard_constraints:
@@ -41,7 +43,7 @@ rule align_seeksv_all:
 		"seeksv"
 	shell:
 		"""
-		bwa mem {params.prefix} {input.fastq1} {input.fastq2} | samtools sort -o {output.bam} -
+		bwa mem -t {threads} {params.prefix} {input.fastq1} {input.fastq2} | samtools sort -o {output.bam} -
 		samtools index {output.bam}
 		"""
 		
@@ -57,7 +59,9 @@ rule dedup_seeksv:
 		mem_gb_sort = lambda wildcards, resources: int(resources.mem_mb / 1e3 / 3),
 		mem_gb_dup = lambda wildcards, resources: int(resources.mem_mb / 1e3 / 3),
 	resources:
-		mem_mb = 10000
+		mem_mb= lambda wildcards, attempt: attempt * 10000,
+		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
+		nodes = 1
 	container:
 		"docker://szsctt/seeksv:1"
 	group:
@@ -90,10 +94,12 @@ rule sort_seeksv:
 	output:
 		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.sorted.bam",
 		bai = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.sorted.bam.bai"
+	resources:
+		mem_mb= lambda wildcards, attempt: attempt * 10000,
+		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
+		nodes = 1
 	wildcard_constraints:
 		dset = ".+_seeksv\d+"
-	resources:
-		mem_mb = 10000
 	params:
 		mem_gb = lambda wildcards, resources: int(resources.mem_mb / 1e3) - 1
 	container:
@@ -121,6 +127,10 @@ rule seeksv_getclip:
 		clip = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.clip.gz",
 		unmapped_1 = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.unmapped_1.fq.gz",
 		unmapped_2 = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.unmapped_2.fq.gz",	
+	resources:
+		mem_mb= lambda wildcards, attempt: attempt * 10000,
+		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
+		nodes = 1
 	wildcard_constraints:
 		dset = ".+_seeksv\d+"
 	params:
@@ -140,6 +150,11 @@ rule align_seeksv_clip:
 		idx = rules.host_virus_index_seeksv.output.idx
 	output:
 		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.clip.bam"
+	resources:
+		mem_mb= lambda wildcards, attempt: attempt * 10000,
+		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
+		nodes = 1
+	threads: 8
 	wildcard_constraints:
 		dset = ".+_seeksv\d+"
 	params:
@@ -148,7 +163,7 @@ rule align_seeksv_clip:
 		"docker://szsctt/seeksv:1"
 	shell:
 		"""
-		bwa mem  {params.prefix} {input.fq} | samtools view  -Sb -o {output.bam} -
+		bwa mem -t {threads}  {params.prefix} {input.fq} | samtools view  -Sb -o {output.bam} -
 		"""
 
 rule seeksv:
@@ -159,6 +174,10 @@ rule seeksv:
 	output:
 		ints = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.txt",
 		unmapped = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.unmapped.clip.fq.gz"
+	resources:
+		mem_mb= lambda wildcards, attempt: attempt * 50000,
+		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
+		nodes = 1
 	wildcard_constraints:
 		dset = ".+_seeksv\d+"
 	container:
@@ -177,6 +196,10 @@ rule get_host_chroms:
 		fa = temp("{outpath}/seeksv_refs/data/{host}/{host}.fa"),
 		fai = temp("{outpath}/seeksv_refs/data/{host}/{host}.fa.fai"),
 		chromlist = "{outpath}/seeksv_refs/data/{host}/{host}.txt"
+	resources:
+		mem_mb= lambda wildcards, attempt: attempt * 500,
+		time = lambda wildcards, attempt: ('5:00', '20:00', '1:00:00', '7-00:00:00')[attempt - 1],
+		nodes = 1
 	wildcard_constraints:
 		dset = ".+_seeksv\d+"
 	container:
@@ -195,6 +218,10 @@ rule make_host_bed:
 		chromlist = rules.get_host_chroms.output.chromlist
 	output:
 		bed = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.host.bed"
+	resources:
+		mem_mb= lambda wildcards, attempt: attempt * 5000,
+		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
+		nodes = 1
 	wildcard_constraints:
 		dset = ".+_seeksv\d+"
 	container:
@@ -215,6 +242,10 @@ rule merge_host_bed:
 	params:
 		d = lambda wildcards: int(analysis_df_value(wildcards, 'merge_dist')),
 		n = lambda wildcards: int(analysis_df_value(wildcards, 'min_reads')),		
+	resources:
+		mem_mb= lambda wildcards, attempt: attempt * 5000,
+		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
+		nodes = 1
 	wildcard_constraints:
 		dset = ".+_seeksv\d+"
 	container:
