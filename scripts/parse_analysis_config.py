@@ -298,8 +298,8 @@ def add_read_info(config, dataset, rows):
  		R1_suffix = config[dataset].get('R1_suffix')
  		R2_suffix = config[dataset].get('R2_suffix')
  		bam_suffix = config[dataset].get('bam_suffix')
- 		adapter_1 = config[dataset].get('adapter_1')
- 		adapter_2 = config[dataset].get('adapter_2')
+ 		adapter_1 = config[dataset].get('read1-adapt')
+ 		adapter_2 = config[dataset].get('read2-adapt')
  		
  		for row in rows:
  			row['read_folder'] = read_folder
