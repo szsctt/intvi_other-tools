@@ -9,4 +9,4 @@ data/reads/verse_references/
 data/reads/vifi_refs/
 scripts/__pycache__/
 *.sif
-
+*log
