@@ -5,7 +5,7 @@ rule host_virus_index_seeksv:
 		host = lambda wildcards: ref_names[wildcards.host]
 	output:
 		fa = "{outpath}/seeksv_refs/data/{virus}/{host}_{virus}.fas",
-		idx = multiext("{outpath}/seeksv_refs/data/{virus}/{host}_{virus}.fas", ".amb", ".ann", ".bwt", ".pac", ".sa")
+		idx = multiext("{outpath}/seeksv_refs/{virus}/{host}_{virus}.fas", ".amb", ".ann", ".bwt", ".pac", ".sa")
 	container:
 		"docker://szsctt/seeksv:1"
 	resources:
