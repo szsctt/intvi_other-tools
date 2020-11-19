@@ -21,26 +21,6 @@ rule bwt2_index:
 	shell:
 		"bowtie2-build {input} {params.prefix}"
 
-rule trim:
-	input:
-		r1 = lambda wildcards: get_input_reads(wildcards, 1),
-		r2 = lambda wildcards: get_input_reads(wildcards, 2)
-	output:
-		proc_r1 = temp("{outpath}/{dset}/trimmed_reads/{samp}.1.fastq.gz"),
-		proc_r2 = temp("{outpath}/{dset}/trimmed_reads/{samp}.2.fastq.gz")
-	conda:	
-		"../envs/seqprep.yml"
-	container:
-		"docker://szsctt/seqprep:1"
-	params:
-		A = lambda wildcards: analysis_df_value(wildcards, 'adapter_1'),
-		B = lambda wildcards: analysis_df_value(wildcards, 'adapter_2')
-	shell:
-		"""
-		SeqPrep -A {params.A} -B {params.B} -f {input.r1} -r {input.r2} -1 {output.proc_r1} -2 {output.proc_r2}
-		"""
-
-
 rule polyidus:
 	input:
 		fastq1 = lambda wildcards: get_polyidus_reads(wildcards, 1),

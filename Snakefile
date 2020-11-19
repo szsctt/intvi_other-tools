@@ -68,6 +68,7 @@ rule all:
 		set(analysis_summaries),
 		other_tool_targets
 	
+include: "snakemake_rules/trim.smk"
 
 include: "snakemake_rules/polyidus.smk"
 

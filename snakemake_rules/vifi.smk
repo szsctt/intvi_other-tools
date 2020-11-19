@@ -127,7 +127,6 @@ rule vifi:
 		fastq1 = lambda wildcards: get_polyidus_reads(wildcards, 1),
 		fastq2 = lambda wildcards: get_polyidus_reads(wildcards, 2),
 		chrom_list = rules.vifi_data_repo.output.chromosomes,
-
 	output:
 		clusters = "{outpath}/{dset}/vifi.{samp}.{host}.{virus}/output.clusters.txt",
 		ints = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.txt",
@@ -144,7 +143,7 @@ rule vifi:
 	resources:
 		mem_mb= lambda wildcards, attempt: int(attempt * 10000),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1]
-	threads: 5
+	threads: 8
 	shell:
 		"""
 		export AA_DATA_REPO=$(realpath {params.aa_data_repo})
