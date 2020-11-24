@@ -5,6 +5,7 @@ import itertools
 import pandas as pd
 
 from scripts.parse_analysis_config import parse_analysis_config, get_samples
+from scripts.input_functions import *
 
 verse_threads = 8
 

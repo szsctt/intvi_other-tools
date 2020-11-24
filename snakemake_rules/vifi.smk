@@ -12,7 +12,7 @@ rule host_virus_index:
 	container:
 		"docker://szsctt/vifi:1"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: int(attempt * 5 * (os.stat(input.host).st_size/1e6 + os.stat(input.virus).st_size/1e6)),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.host, input.virus), attempt),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	shell:
@@ -35,24 +35,19 @@ rule vifi_faidx:
 		samtools faidx {input.fa}
 		mv {params.fai} {output.fai}
 		"""
-
-def get_vifi_resource(wildcards, resource_name):
-	"""Get resources required for vifi"""
-	host_idx = analysis_df[(analysis_df['host'] == wildcards.host) & (analysis_df['tool'] == 'vifi')].index[0]
-	return analysis_df.loc[host_idx, resource_name]
 		
 rule vifi_data_repo:
 	input:
 		fa = lambda wildcards: ref_names[wildcards.host],
 		fai = rules.vifi_faidx.output.fai,
-		mappability = lambda wildcards: get_vifi_resource(wildcards, 'host_mappability'),
-		mappability_exclude = lambda wildcards: get_vifi_resource(wildcards, 'host_mappability_exclude'),
-		genes = lambda wildcards: get_vifi_resource(wildcards, 'host_genes'),
-		exons = lambda wildcards: get_vifi_resource(wildcards, 'host_exons'),
-		oncogenes = lambda wildcards: get_vifi_resource(wildcards, 'host_oncogenes'),
-		centromeres = lambda wildcards: get_vifi_resource(wildcards, 'host_centromeres'),
-		conserved = lambda wildcards: get_vifi_resource(wildcards, 'host_conserved_regions'),
-		segdup = lambda wildcards: get_vifi_resource(wildcards, 'host_segdup')	
+		mappability = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_mappability'),
+		mappability_exclude = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_mappability_exclude'),
+		genes = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_genes'),
+		exons = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_exons'),
+		oncogenes = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_oncogenes'),
+		centromeres = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_centromeres'),
+		conserved = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_conserved_regions'),
+		segdup = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_segdup')	
 	output:
 		chromosomes = "{outpath}/vifi_refs/data_repo/{host}/{host}_chromosome-list.txt",
 		file_list = "{outpath}/vifi_refs/data_repo/{host}/file_list.txt",
@@ -141,7 +136,7 @@ rule vifi:
 	container:
 		"docker://szsctt/vifi:1"
 	resources:
-		mem_mb= lambda wildcards, attempt: int(attempt * 10000),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.idx), attempt),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1]
 	threads: 8
 	shell:

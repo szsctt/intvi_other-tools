@@ -14,8 +14,8 @@ rule trim:
 	container:
 		"docker://szsctt/seqprep:1"
 	params:
-		A = lambda wildcards: analysis_df_value(wildcards, 'adapter_1'),
-		B = lambda wildcards: analysis_df_value(wildcards, 'adapter_2')
+		A = lambda wildcards: analysis_df_value(wildcards, analysis_df, 'adapter_1'),
+		B = lambda wildcards: analysis_df_value(wildcards, analysis_df, 'adapter_2')
 	shell:
 		"""
 		SeqPrep -A {params.A} -B {params.B} -f {input.r1} -r {input.r2} -1 {output.proc_r1} -2 {output.proc_r2}

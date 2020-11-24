@@ -15,7 +15,7 @@ rule bwt2_index:
 	params:
 		prefix = lambda wildcards, output: os.path.splitext(os.path.splitext(output[0])[0])[0]
 	resources:
-		mem_mb= lambda wildcards, attempt, input: int(attempt * 5 * (os.stat(input.fasta).st_size/1e6)),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.fasta, ), attempt),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	shell:
@@ -40,7 +40,7 @@ rule polyidus:
 		host_idx = lambda wildcards, input: os.path.splitext(os.path.splitext(input.host_idx[0])[0])[0],
 		virus_idx = lambda wildcards, input: os.path.splitext(os.path.splitext(input.virus_idx[0])[0])[0],
 	resources:
-		mem_mb= lambda wildcards, attempt: int(attempt * 10000),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.host_idx, attempt),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1]
 	container:
 		"docker://szsctt/polyidus:2"
@@ -61,31 +61,4 @@ rule polyidus:
 		"""
 		
 		
-def analysis_df_value(wildcards, column_name):
-	
-	# get a value from the row of the df corresponding to this analysis condition
-	unique = f"{wildcards.dset}"
 
-	return analysis_df.loc[(analysis_df['analysis_condition'] == unique).idxmax(), column_name] 
-
-
-def get_input_reads(wildcards, read_num):
-	assert read_num in (1, 2)
-	if read_num == 1:
-		return f"{analysis_df_value(wildcards, 'read_folder')}/{wildcards.samp}{analysis_df_value(wildcards, 'R1_suffix')}"
-	if read_num == 2:
-		return f"{analysis_df_value(wildcards, 'read_folder')}/{wildcards.samp}{analysis_df_value(wildcards, 'R2_suffix')}"	
-
-
-def get_polyidus_reads(wildcards, read_num):
-
-	if analysis_df_value(wildcards, 'trim') == 1:
-		if read_num == 1:
-			return rules.trim.output.proc_r1
-		else:
-			return rules.trim.output.proc_r2
-	else:
-		if read_num == 1:
-			return get_input_reads(wildcards, 1)
-		else:
-			return get_input_reads(wildcards, 2)

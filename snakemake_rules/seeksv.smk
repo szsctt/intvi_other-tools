@@ -9,7 +9,7 @@ rule host_virus_index_seeksv:
 	container:
 		"docker://szsctt/seeksv:1"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: int(attempt * 5 * (os.stat(input.host).st_size/1e6 + os.stat(input.virus).st_size/1e6)),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.host, input.virus), attempt, 0.2),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	wildcard_constraints:
@@ -36,7 +36,7 @@ rule align_seeksv_all:
 	wildcard_constraints:
 		dset = ".+_seeksv\d+"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: int(attempt * 5 * sum([os.stat(f).st_size/1e6 for f in input.idx])),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.idx, attempt),
 		nodes = 1,
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 	shell:
@@ -54,7 +54,7 @@ rule dedup_seeksv:
 	wildcard_constraints:
 		dset = ".+_seeksv\d+"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: max(2000, int(attempt * 5 * os.stat(input.bam).st_size/1e6)),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.bam, ), attempt, 0.5),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	params:
@@ -78,7 +78,7 @@ rule dedup_seeksv:
 		
 def get_seeksv_alignment(wildcards):
 	# if we want to do dedupliation
-	if analysis_df_value(wildcards, 'dedup') == 1:
+	if analysis_df_value(wildcards, analysis_df, 'dedup') == 1:
 		return rules.dedup_seeksv.output.bam
 	
 	# no deduplication
@@ -91,7 +91,7 @@ rule sort_seeksv:
 		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.sorted.bam",
 		bai = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.sorted.bam.bai"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: max(2000, int(attempt * 5 * os.stat(input.bam).st_size/1e6)),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.bam, ), attempt),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	wildcard_constraints:
@@ -122,7 +122,7 @@ rule seeksv_getclip:
 		unmapped_1 = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.unmapped_1.fq.gz",
 		unmapped_2 = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.unmapped_2.fq.gz",	
 	resources:
-		mem_mb= lambda wildcards, attempt, input: max(2000, int(attempt * 5 * os.stat(input.bam).st_size/1e6)),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.bam, ), attempt, 0.2),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	wildcard_constraints:
@@ -143,7 +143,7 @@ rule align_seeksv_clip:
 	output:
 		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.clip.bam"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: int(attempt * 5 * sum([os.stat(f).st_size/1e6 for f in input.idx])),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.idx, attempt),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	threads: 8
@@ -167,7 +167,7 @@ rule seeksv:
 		ints = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.txt",
 		unmapped = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.unmapped.clip.fq.gz"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: max(2000, int(attempt * 5 * os.stat(input.bam).st_size/1e6)),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.clip, input.bam, input.bam_clip), attempt),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	wildcard_constraints:
@@ -228,10 +228,10 @@ rule merge_host_bed:
 		tmp = temp("{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.sorted.bed"),
 		merged = temp("{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.merged.bed")
 	params:
-		d = lambda wildcards: int(analysis_df_value(wildcards, 'merge_dist')),
-		n = lambda wildcards: int(analysis_df_value(wildcards, 'min_reads')),		
+		d = lambda wildcards: int(analysis_df_value(wildcards, analysis_df, 'merge_dist')),
+		n = lambda wildcards: int(analysis_df_value(wildcards, analysis_df, 'min_reads')),		
 	resources:
-		mem_mb= lambda wildcards, attempt, input: max(2000, int(attempt * 5 * os.stat(input.bed).st_size/1e6)),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.bed, ), attempt),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	wildcard_constraints:
