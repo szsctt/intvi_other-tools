@@ -4,7 +4,7 @@ import pdb
 import itertools
 import pandas as pd
 
-from scripts.parse_analysis_config import parse_analysis_config, get_samples
+from scripts.parse_analysis_config_single import parse_analysis_config, get_samples
 from scripts.input_functions import *
 
 verse_threads = 8
@@ -29,7 +29,7 @@ if len(ref_names.keys()) != len(set(analysis_df.host)) + len(set(analysis_df.vir
 #####################################################
 ################## wildcards ########################
 #####################################################
-"{outpath}/{dset}/{analysis_condition}/{host}.{virus}.{samp}/results/exactHpvIntegrations.tsv"
+
 all_samples = set()
 for samples in sample_dict.values():
 	all_samples |= set(samples)
@@ -37,7 +37,6 @@ for samples in sample_dict.values():
 wildcard_constraints:
 	outpath = "|".join(set(analysis_df['outdir'])),
 	dset = "|".join(set(analysis_df['experiment'])),
-	analysis_condition = "|".join(set(analysis_df['analysis_condition'])),
 	host = "|".join(set(analysis_df['host'])),
 	virus = "|".join(set(analysis_df['virus'])),	
 	sample = "|".join(set(all_samples))
@@ -61,7 +60,7 @@ for i, row in analysis_df.iterrows():
 	samples = sample_dict[row['experiment']]
 	
 	if row['tool'] == 'polyidus':
-		other_tool_targets |= set(expand("{outpath}/{dset}/{analysis_condition}/{host}.{virus}.{samp}/results/exactHpvIntegrations.tsv", 
+		other_tool_targets |= set(expand("{outpath}/{dset}/polyidus/{host}.{virus}.{samp}/results/exactHpvIntegrations.tsv", 
 																	outpath = row['outdir'],
 																	dset = row['experiment'],
 																	analysis_condition = row['analysis_condition'],
@@ -70,7 +69,7 @@ for i, row in analysis_df.iterrows():
 																	samp = samples
 														))
 	elif row['tool'] == 'seeksv':
-		other_tool_targets |= set(expand("{outpath}/{dset}/{analysis_condition}/ints/{samp}.{host}.{virus}.integrations.txt", 
+		other_tool_targets |= set(expand("{outpath}/{dset}/seeksv/ints/{samp}.{host}.{virus}.integrations.txt", 
 																	outpath = row['outdir'],
 																	dset = row['experiment'],
 																	analysis_condition = row['analysis_condition'],
@@ -79,7 +78,7 @@ for i, row in analysis_df.iterrows():
 																	samp = samples
 														))
 	elif row['tool'] == 'verse':
-		other_tool_targets |= set(expand("{outpath}/{dset}/{analysis_condition}/{samp}.{host}.{virus}/integration-sites.txt", 
+		other_tool_targets |= set(expand("{outpath}/{dset}/verse/{samp}.{host}.{virus}/integration-sites.txt", 
 																	outpath = row['outdir'],
 																	dset = row['experiment'],
 																	analysis_condition = row['analysis_condition'],
@@ -88,7 +87,7 @@ for i, row in analysis_df.iterrows():
 																	samp = samples
 														))				
 	elif row['tool'] == 'vifi':
-		other_tool_targets |= set(expand("{outpath}/{dset}/{analysis_condition}/vifi.{samp}.{host}.{virus}/output.clusters.txt", 
+		other_tool_targets |= set(expand("{outpath}/{dset}/vifi/{samp}.{host}.{virus}/output.clusters.txt", 
 																	outpath = row['outdir'],
 																	dset = row['experiment'],
 																	analysis_condition = row['analysis_condition'],

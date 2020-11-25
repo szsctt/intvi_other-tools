@@ -34,7 +34,7 @@ rule polyidus:
 							".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"
 						)
 	output:
-		ints = "{outpath}/{dset}/{analysis_condition}/{host}.{virus}.{samp}/results/exactHpvIntegrations.tsv",
+		ints = "{outpath}/{dset}/polyidus/{host}.{virus}.{samp}/results/exactHpvIntegrations.tsv",
 	params:
 		output = lambda wildcards, output: os.path.dirname(os.path.dirname(output.ints)),
 		host_idx = lambda wildcards, input: os.path.splitext(os.path.splitext(input.host_idx[0])[0])[0],
@@ -44,8 +44,6 @@ rule polyidus:
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1]
 	container:
 		"docker://szsctt/polyidus:2"
-	wildcard_constraints:
-		analysis_condition = 'polyidus\d+'
 	shell:
 		"""
 		rm -rf {params.output}/*

@@ -7,24 +7,21 @@ test:
    read2-adapt: "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"
    
    # analysis
-   analysis_hosts: # if running vifi, there must be a matching key in analysis_hosts under vifi_params
+   analysis_host: # if running vifi, there must be a matching key in analysis_hosts under vifi_params
        "human" : "data/references/test_human.fa"
-   analysis_viruses:
+   analysis_virus:
        "AAV" :  "data/references/test_AAV.fa"
    
    #run polyidus?
    # https://github.com/hoffmangroup/polyidus
    # note container contains my fork: https://github.com/szsctt/polyidus
    polyidus_params:
-     trim:
-      - True
-     aligner:
-      - "bowtie2"
+     trim: True
+     aligner: "bowtie2"
       
    # run vifi
    vifi_params:
-     trim:
-      - True
+     trim: True
      host_info:
        human: # fasta will be used from general analysis_hosts
          mappability: "../vifi-test/data_repo/GRCh38/hg38full_k35_noMM.mappability.bedgraph"
@@ -39,27 +36,16 @@ test:
    # run verse
    # https://bioinfo.uth.edu/VirusFinder/VirusFinder-manual.pdf?csrt=2093584511125027598
    verse_params:
-     detection_mode:
-      - sensitive
-     flank_region_size:
-      - 4000
-     sensitivity_level:
-      - 1
-     min_contig_length:
-      - 300
-     blastn_evalue_thrd:
-      - 0.05
-     similarity_thrd:
-      - 0.8
-     chop_read_length:
-      - 25
-     minIdentity:
-      - 80     
-     trim:
-      - True
+     detection_mode: sensitive
+     flank_region_size: 4000
+     sensitivity_level: 1
+     min_contig_length: 300
+     blastn_evalue_thrd: 0.05
+     similarity_thrd: 0.8
+     chop_read_length: 25
+     minIdentity: 80     
+     trim: True
  
    seeksv_params:
-     trim:
-      - True
-     dedup:
-      - False
+     trim: True
+     dedup: False

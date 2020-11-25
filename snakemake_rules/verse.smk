@@ -67,8 +67,8 @@ rule verse:
 		host_blast = multiext("{outpath}/verse_references/{host}/{host}", 
 														".nhr", ".nin", ".nsq"),
 	output:
-		output = "{outpath}/{dset}/{analysis_condition}/{samp}.{host}.{virus}/integration-sites.txt",
-		config = "{outpath}/{dset}/{analysis_condition}/{samp}.{host}.{virus}/config.txt",	
+		output = "{outpath}/{dset}/verse/{samp}.{host}.{virus}/integration-sites.txt",
+		config = "{outpath}/{dset}/verse/{samp}.{host}.{virus}/config.txt",	
 	params:
 		workdir = lambda wildcards, output: os.path.dirname(os.path.realpath(output.output)),
 		currdir = lambda wildcards: os.getcwd(),
@@ -94,7 +94,7 @@ rule verse:
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	log:
-		"{outpath}/logs/{dset}_{analysis_condition}_{samp}_{host}_{virus}.log"
+		"{outpath}/logs/{dset}_verse_{samp}_{host}_{virus}.log"
 	threads: verse_threads
 	shell:
 		"""
