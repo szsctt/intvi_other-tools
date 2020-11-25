@@ -12,8 +12,6 @@ vifi_default_trim = [False]
 
 seeksv_default_trim = [False]
 seeksv_default_dedup = [False]
-seeksv_default_merge_dist = [0]
-seeksv_default_min_reads = [1]
 
 verse_default_trim = [False]
 verse_default_detection_mode = ['sensitive']
@@ -57,7 +55,7 @@ def parse_analysis_config(config):
 									'flank_region_size', 'sensitivity_level', 
 									'min_contig_length', 'blastn_evalue_thrd', 
 									'similarity_thrd', 
-									'chop_read_length', 'minIdentity', 'min_reads', 'merge_dist')		
+									'chop_read_length', 'minIdentity')		
 
 	analysis_conditions = []
 	
@@ -126,7 +124,7 @@ def make_verse_rows(config, dataset):
 																		minIdentity_list
 																		):
 		
-		condition = f"{dataset}_verse{i}"
+		condition = f"verse{i}"
 		rows.append({
 				'experiment' : dataset,
 				'host' 			: host,
@@ -173,7 +171,7 @@ def make_vifi_rows(config, dataset):
 	trim_list = get_list_with_default(config[dataset]['vifi_params'], 'trim', vifi_default_trim, 'vifi_params')								
 
 	for host, virus, trim in itertools.product(hosts_to_use, config[dataset]['analysis_viruses'].keys(), trim_list):
-		condition = f"{dataset}_vifi{i}"
+		condition = f"vifi{i}"
 		rows.append({
 				'experiment' : dataset,
 				'host' 			 : host,
@@ -220,7 +218,7 @@ def make_polyidus_rows(config, dataset):
 																		aligners,
 																		trim_list):
 		# give this analysis condition a name
-		condition = f"{dataset}_polyidus{i}"
+		condition = f"polyidus{i}"
 
 		rows.append({
 					'experiment' : dataset,
@@ -245,22 +243,18 @@ def make_seeksv_rows(config, dataset):
 	
 	trim = get_list_with_default(config[dataset]['seeksv_params'], 'trim', seeksv_default_trim, 'seeksv_params')
 	dedup = get_list_with_default(config[dataset]['seeksv_params'], 'dedup', seeksv_default_dedup, 'seeksv_params')
-	merge_dist_list = get_list_with_default(config[dataset]['seeksv_params'], 'merge_dist', seeksv_default_merge_dist, 'seeksv_params')
-	min_reads_list = get_list_with_default(config[dataset]['seeksv_params'], 'min_reads', seeksv_default_min_reads, 'seeksv_params')
 	
 	trim_list = [1 if entry is True else 0 for entry in trim]
 	dedup_list = [1 if entry is True else 0 for entry in dedup]	
 	
-	for host, virus, trim, dedup, merge_dist, min_reads in itertools.product(
+	for host, virus, trim, dedup in itertools.product(
 																		config[dataset]['analysis_hosts'].keys(),
 																		config[dataset]['analysis_viruses'].keys(),
 																		trim_list,
-																		dedup_list,
-																		merge_dist_list,
-																		min_reads_list):
+																		dedup_list):
 		
 		# give this analysis condition a name
-		condition = f"{dataset}_seeksv{i}"
+		condition = f"seeksv{i}"
 
 		rows.append({
 					'experiment' : dataset,
@@ -272,8 +266,6 @@ def make_seeksv_rows(config, dataset):
 					'trim'			 : trim,
 					'merge'			 : 0,
 					'dedup'      : dedup,
-					'merge_dist' : merge_dist,
-					'min_reads'  : min_reads,
 					'tool'			 : 'seeksv',
 					})	
 		i += 1
@@ -302,8 +294,8 @@ def add_read_info(config, dataset, rows):
  		adapter_2 = config[dataset].get('read2-adapt')
  		
  		for row in rows:
- 			row['read_folder'] = read_folder
- 			row['outdir'] = outdir
+ 			row['read_folder'] = path.normpath(read_folder)
+ 			row['outdir'] = path.normpath(outdir)
  			row['R1_suffix'] = R1_suffix
  			row['R2_suffix'] = R2_suffix
  			row['bam_suffix'] = bam_suffix

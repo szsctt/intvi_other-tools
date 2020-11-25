@@ -1,3 +1,5 @@
+import os
+
 
 #####################################################
 ##################### polyidus ######################
@@ -23,8 +25,8 @@ rule bwt2_index:
 
 rule polyidus:
 	input:
-		fastq1 = lambda wildcards: get_polyidus_reads(wildcards, 1),
-		fastq2 = lambda wildcards: get_polyidus_reads(wildcards, 2),
+		fastq1 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 1),
+		fastq2 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 2),
 		host_idx = multiext("{outpath}/references/{host}/{host}", 
 							".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"
 						),
@@ -32,11 +34,9 @@ rule polyidus:
 							".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"
 						)
 	output:
-		temp_ints = temp("{outpath}/{dset}/polyidus.{host}.{virus}.{samp}/results/exactHpvIntegrations.tsv"),
-		ints = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.txt",
-		fake_merged = temp("{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.merged.bed")
+		ints = "{outpath}/{dset}/{analysis_condition}/{host}.{virus}.{samp}/results/exactHpvIntegrations.tsv",
 	params:
-		output = lambda wildcards, output: os.path.dirname(os.path.dirname(output.temp_ints)),
+		output = lambda wildcards, output: os.path.dirname(os.path.dirname(output.ints)),
 		host_idx = lambda wildcards, input: os.path.splitext(os.path.splitext(input.host_idx[0])[0])[0],
 		virus_idx = lambda wildcards, input: os.path.splitext(os.path.splitext(input.virus_idx[0])[0])[0],
 	resources:
@@ -45,7 +45,7 @@ rule polyidus:
 	container:
 		"docker://szsctt/polyidus:2"
 	wildcard_constraints:
-		dset = ".+_polyidus\d+"
+		analysis_condition = 'polyidus\d+'
 	shell:
 		"""
 		rm -rf {params.output}/*
@@ -55,9 +55,6 @@ rule polyidus:
 		{params.virus_idx} \
 		--fastq {input.fastq1} {input.fastq2} \
 		--outdir {params.output}
-		
-		cp {output.temp_ints} {output.ints}
-		cp {output.temp_ints} {output.fake_merged}
 		"""
 		
 		

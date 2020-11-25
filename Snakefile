@@ -26,16 +26,22 @@ ref_names = {name: path for name, path in zip(list(analysis_df.host) + list(anal
 if len(ref_names.keys()) != len(set(analysis_df.host)) + len(set(analysis_df.virus)):
 	raise ValueError("Each host and virus reference name must be unique")				
 
-
 #####################################################
-################## ruleorder ########################
+################## wildcards ########################
 #####################################################
+"{outpath}/{dset}/{analysis_condition}/{host}.{virus}.{samp}/results/exactHpvIntegrations.tsv"
+all_samples = set()
+for samples in sample_dict.values():
+	all_samples |= set(samples)
 
-# to resolve conflicts between polyidus and combine_ints (our analysis pipeline)
-# rule polyidus has a wildcard contstraint so it can't be used for our pipeline
-# so make it higher in the priority
+wildcard_constraints:
+	outpath = "|".join(set(analysis_df['outdir'])),
+	dset = "|".join(set(analysis_df['experiment'])),
+	analysis_condition = "|".join(set(analysis_df['analysis_condition'])),
+	host = "|".join(set(analysis_df['host'])),
+	virus = "|".join(set(analysis_df['virus'])),	
+	sample = "|".join(set(all_samples))
 
-ruleorder: vifi > polyidus > verse 
 
 #####################################################
 ################### target files ####################
@@ -51,20 +57,47 @@ analysis_summaries = expand("{outdir}/{experiment}/analysis_conditions.tsv",
 # targets for other tools
 other_tool_targets = set()
 for i, row in analysis_df.iterrows():
-	outpath = row['outdir']
-	exp = row['experiment']
-	dset = row['analysis_condition']
-	host = row['host']
-	virus = row['virus']
-		
-	samples = sample_dict[exp]
-		
-	for samp in samples:
-		other_tool_targets.add(
-			f"{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.txt"
-		)
 
-rule all:
+	samples = sample_dict[row['experiment']]
+	
+	if row['tool'] == 'polyidus':
+		other_tool_targets |= set(expand("{outpath}/{dset}/{analysis_condition}/{host}.{virus}.{samp}/results/exactHpvIntegrations.tsv", 
+																	outpath = row['outdir'],
+																	dset = row['experiment'],
+																	analysis_condition = row['analysis_condition'],
+																	host = row['host'],
+																	virus = row['virus'],
+																	samp = samples
+														))
+	elif row['tool'] == 'seeksv':
+		other_tool_targets |= set(expand("{outpath}/{dset}/{analysis_condition}/ints/{samp}.{host}.{virus}.integrations.txt", 
+																	outpath = row['outdir'],
+																	dset = row['experiment'],
+																	analysis_condition = row['analysis_condition'],
+																	host = row['host'],
+																	virus = row['virus'],
+																	samp = samples
+														))
+	elif row['tool'] == 'verse':
+		other_tool_targets |= set(expand("{outpath}/{dset}/{analysis_condition}/{samp}.{host}.{virus}/integration-sites.txt", 
+																	outpath = row['outdir'],
+																	dset = row['experiment'],
+																	analysis_condition = row['analysis_condition'],
+																	host = row['host'],
+																	virus = row['virus'],
+																	samp = samples
+														))				
+	elif row['tool'] == 'vifi':
+		other_tool_targets |= set(expand("{outpath}/{dset}/{analysis_condition}/vifi.{samp}.{host}.{virus}/output.clusters.txt", 
+																	outpath = row['outdir'],
+																	dset = row['experiment'],
+																	analysis_condition = row['analysis_condition'],
+																	host = row['host'],
+																	virus = row['virus'],
+																	samp = samples
+														))					
+
+rule all: 
 	input:
 		set(analysis_summaries),
 		other_tool_targets

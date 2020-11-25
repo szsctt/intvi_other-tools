@@ -52,11 +52,11 @@ rule copy_reference_verse:
 		"""
 		cp $(realpath {input.fasta}) $(realpath {output.fasta})
 		"""
-	
-rule verse_config:
+
+rule verse:
 	input:
-		fastq1 = lambda wildcards: get_polyidus_reads(wildcards, 1),
-		fastq2 = lambda wildcards: get_polyidus_reads(wildcards, 2),
+		fastq1 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 1),
+		fastq2 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 2),
 		virus_fasta = "{outpath}/verse_references/{virus}/{virus}.fa",
 		host_fasta = "{outpath}/verse_references/{host}/{host}.fa",
 		host_idx = multiext("{outpath}/verse_references/{host}/{host}", 
@@ -67,8 +67,12 @@ rule verse_config:
 		host_blast = multiext("{outpath}/verse_references/{host}/{host}", 
 														".nhr", ".nin", ".nsq"),
 	output:
-		config = "{outpath}/{dset}/{samp}.{host}.{virus}/config.txt",	
+		output = "{outpath}/{dset}/{analysis_condition}/{samp}.{host}.{virus}/integration-sites.txt",
+		config = "{outpath}/{dset}/{analysis_condition}/{samp}.{host}.{virus}/config.txt",	
 	params:
+		workdir = lambda wildcards, output: os.path.dirname(os.path.realpath(output.output)),
+		currdir = lambda wildcards: os.getcwd(),
+		config = lambda wildcards, output: os.path.basename(output.config),
 		host_bowtie = lambda wildcards, input: os.path.splitext(os.path.splitext(os.path.realpath(input.host_idx[0]))[0])[0],
 		virus_blast = lambda wildcards, input: os.path.splitext(os.path.realpath(input.virus_blast[0]))[0],
 		host_blast = lambda wildcards, input: os.path.splitext(os.path.realpath(input.host_blast[0]))[0],
@@ -80,58 +84,9 @@ rule verse_config:
 		blastn_evalue_thrd = lambda wildcards: analysis_df_value(wildcards, analysis_df, 'blastn_evalue_thrd'),
 		similarity_thrd = lambda wildcards: analysis_df_value(wildcards, analysis_df, 'similarity_thrd'),
 		chop_read_length = lambda wildcards: int(analysis_df_value(wildcards, analysis_df, 'chop_read_length')),
-		minIdentity = lambda wildcards: int(analysis_df_value(wildcards, analysis_df, 'minIdentity')),		
-	shell:
-		"""
-  		echo "fastq1 = $(realpath {input.fastq1})" > {output.config}
-  		echo "fastq2 = $(realpath {input.fastq2})" >> {output.config}
-  		echo 'detect_integration = yes' >> {output.config}
-  		echo 'detect_mutation = no' >> {output.config}
-  		echo 'thread_no = {verse_threads}' >> {output.config}
-  		echo 'blastn_bin = /usr/bin/blastn' >> {output.config}
-  		echo 'bowtie_bin = /usr/bin/bowtie2' >> {output.config}
-  		echo 'bwa_bin = /usr/bin/bwa' >> {output.config}
-  		echo 'trinity_script = /trinityrnaseq_r2013-02-16/Trinity.pl' >> {output.config}
-  		echo 'SVDetect_dir = /SVDetect_r0.8' >> {output.config}
-  		echo 'virus_database = {params.virus_fa}' >> {output.config}
-  		echo 'bowtie_index_human = {params.host_bowtie}' >> {output.config}
-  		echo 'blastn_index_human = {params.host_blast}' >> {output.config}
-  		echo 'blastn_index_virus = {params.virus_blast}' >> {output.config}
-  		echo 'detection_mode     = {params.detection_mode}' >> {output.config}
-			echo 'flank_region_size  = {params.flank_region_size}' >> {output.config}
-			echo 'sensitivity_level  = {params.sensitivity_level}' >> {output.config}
-  		echo 'min_contig_length = {params.min_contig_length}' >> {output.config}
-  		echo 'blastn_evalue_thrd = {params.blastn_evalue_thrd}' >> {output.config}
-  		echo 'similarity_thrd = {params.similarity_thrd}' >> {output.config}
-  		echo 'chop_read_length = {params.chop_read_length}' >> {output.config}
-  		echo 'minIdentity = {params.minIdentity}' >> {output.config}
-  		
-		"""
-
-rule verse:
-	input:
-		config = rules.verse_config.output.config,
-		fastq1 = lambda wildcards: get_polyidus_reads(wildcards, 1),
-		fastq2 = lambda wildcards: get_polyidus_reads(wildcards, 2),
-		virus_fasta = "{outpath}/verse_references/{virus}/{virus}.fa",
-		host_fasta = "{outpath}/verse_references/{host}/{host}.fa",	
-		host_idx = multiext("{outpath}/verse_references/{host}/{host}", 
-												".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"
-												),
-		virus_blast = multiext("{outpath}/verse_references/{virus}/{virus}", 
-														".nhr", ".nin", ".nsq"),
-		host_blast = multiext("{outpath}/verse_references/{host}/{host}", 
-														".nhr", ".nin", ".nsq"),
-	output:
-		output = "{outpath}/{dset}/{samp}.{host}.{virus}/integration-sites.txt",
-		ints = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.txt",
-		fake_merged = temp("{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.merged.bed")
-	params:
-		workdir = lambda wildcards, output: os.path.dirname(os.path.realpath(output.output)),
-		currdir = lambda wildcards: os.getcwd(),
-		config = lambda wildcards, input: os.path.basename(input.config)
+		minIdentity = lambda wildcards: int(analysis_df_value(wildcards, analysis_df, 'minIdentity')),	
 	wildcard_constraints:
-		dset = ".+_verse\d+"
+		analysis_condition = 'verse\d+'
 	container:
 		"docker://szsctt/verse:1"
 	resources:
@@ -139,13 +94,37 @@ rule verse:
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	log:
-		"{outpath}/logs/verse_{dset}_{samp}_{host}_{virus}.log"
+		"{outpath}/logs/{dset}_{analysis_condition}_{samp}_{host}_{virus}.log"
 	threads: verse_threads
 	shell:
 		"""
 		cd {params.workdir}
 		
-		perl /var/work/VirusFinder2.0/VirusFinder.pl -c {params.config}
+		# write config file
+		echo "fastq1 = $(realpath {input.fastq1})" > {output.config}
+  	echo "fastq2 = $(realpath {input.fastq2})" >> {output.config}
+  	echo 'detect_integration = yes' >> {output.config}
+  	echo 'detect_mutation = no' >> {output.config}
+  	echo 'thread_no = {verse_threads}' >> {output.config}
+  	echo 'blastn_bin = /usr/bin/blastn' >> {output.config}
+  	echo 'bowtie_bin = /usr/bin/bowtie2' >> {output.config}
+  	echo 'bwa_bin = /usr/bin/bwa' >> {output.config}
+  	echo 'trinity_script = /trinityrnaseq_r2013-02-16/Trinity.pl' >> {output.config}
+  	echo 'SVDetect_dir = /SVDetect_r0.8' >> {output.config}
+  	echo 'virus_database = {params.virus_fa}' >> {output.config}
+  	echo 'bowtie_index_human = {params.host_bowtie}' >> {output.config}
+  	echo 'blastn_index_human = {params.host_blast}' >> {output.config}
+  	echo 'blastn_index_virus = {params.virus_blast}' >> {output.config}
+  	echo 'detection_mode     = {params.detection_mode}' >> {output.config}
+		echo 'flank_region_size  = {params.flank_region_size}' >> {output.config}
+		echo 'sensitivity_level  = {params.sensitivity_level}' >> {output.config}
+  	echo 'min_contig_length = {params.min_contig_length}' >> {output.config}
+  	echo 'blastn_evalue_thrd = {params.blastn_evalue_thrd}' >> {output.config}
+  	echo 'similarity_thrd = {params.similarity_thrd}' >> {output.config}
+  	echo 'chop_read_length = {params.chop_read_length}' >> {output.config}
+  	echo 'minIdentity = {params.minIdentity}' >> {output.config}
+		
+		perl /var/work/VirusFinder2.0/VirusFinder.pl -c {output.config}
 		
 		cd {params.currdir}
 		# virusFinder only makes an output file if it finds integration sites
@@ -153,9 +132,6 @@ rule verse:
 		if [ ! -e {output.output} ]; then
 			touch {output.output}
 		fi
-		
-		cp {output.output} {output.ints}
-		cp {output.output} {output.fake_merged}
 		"""
 		
 

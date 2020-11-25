@@ -119,20 +119,18 @@ rule vifi:
 		fa = rules.vifi_data_repo.output.fa,
 		idx = rules.host_virus_index.output.idx,
 		host_list = rules.data_repo_host_list.output[0],
-		fastq1 = lambda wildcards: get_polyidus_reads(wildcards, 1),
-		fastq2 = lambda wildcards: get_polyidus_reads(wildcards, 2),
+		fastq1 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 1),
+		fastq2 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 2),
 		chrom_list = rules.vifi_data_repo.output.chromosomes,
 	output:
-		clusters = "{outpath}/{dset}/vifi.{samp}.{host}.{virus}/output.clusters.txt",
-		ints = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.txt",
-		fake_merged = temp("{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.merged.bed")
+		clusters = "{outpath}/{dset}/{analysis_condition}/vifi.{samp}.{host}.{virus}/output.clusters.txt"
 	params:
 		reference_repo = lambda wildcards, input: os.path.dirname(input.fa),
 		aa_data_repo = lambda wildcards, input: os.path.dirname(input.host_list),
 		outdir = lambda wildcards, output: os.path.dirname(output.clusters),
 		reference = lambda wildcards, input: os.path.splitext(input.idx[0])[0]
 	wildcard_constraints:
-		dset = ".+_vifi\d+"
+		analysis_condition = "vifi\d+"
 	container:
 		"docker://szsctt/vifi:1"
 	resources:
@@ -152,7 +150,4 @@ rule vifi:
 		-o {params.outdir} \
 		-d True \
 		-C {input.chrom_list}
-		
-		cp {output.clusters} {output.ints}
-		cp {output.clusters} {output.fake_merged}
 		"""			

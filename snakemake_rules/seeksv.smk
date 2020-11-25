@@ -13,7 +13,7 @@ rule host_virus_index_seeksv:
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	wildcard_constraints:
-		dset = ".+_seeksv\d+"
+		analysis_condition = 'seeksv\d+'
 	shell:
 		"""
 		cat {input.virus} {input.host} > {output.fa}
@@ -22,19 +22,19 @@ rule host_virus_index_seeksv:
 		
 rule align_seeksv_all:
 	input:
-		fastq1 = lambda wildcards: get_polyidus_reads(wildcards, 1),
-		fastq2 = lambda wildcards: get_polyidus_reads(wildcards, 2),
+		fastq1 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 1),
+		fastq2 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 2),
 		idx = rules.host_virus_index_seeksv.output.idx
 	output:
-		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.bam",
-		bai = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.bam.bai"
+		bam = "{outpath}/{dset}/{analysis_condition}/aln/{samp}.{host}.{virus}.bam",
+		bai = "{outpath}/{dset}/{analysis_condition}/aln/{samp}.{host}.{virus}.bam.bai"
 	params:
 		prefix = lambda wildcards, input: os.path.splitext(input.idx[0])[0]	
 	threads: 8
 	container:
 		"docker://szsctt/seeksv:1"
 	wildcard_constraints:
-		dset = ".+_seeksv\d+"
+		analysis_condition = 'seeksv\d+'
 	resources:
 		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.idx, attempt),
 		nodes = 1,
@@ -49,10 +49,10 @@ rule dedup_seeksv:
 	input:
 		bam = rules.align_seeksv_all.output.bam
 	output:
-		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.dup.bam",
-		metrics = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.dup.txt"
+		bam = "{outpath}/{dset}/{analysis_condition}/aln/{samp}.{host}.{virus}.dup.bam",
+		metrics = "{outpath}/{dset}/{analysis_condition}/aln/{samp}.{host}.{virus}.dup.txt"
 	wildcard_constraints:
-		dset = ".+_seeksv\d+"
+		analysis_condition = 'seeksv\d+'
 	resources:
 		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.bam, ), attempt, 0.5),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
@@ -88,14 +88,14 @@ rule sort_seeksv:
 	input:
 		bam = lambda wildcards: get_seeksv_alignment(wildcards)
 	output:
-		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.sorted.bam",
-		bai = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.sorted.bam.bai"
+		bam = "{outpath}/{dset}/{analysis_condition}/aln/{samp}.{host}.{virus}.sorted.bam",
+		bai = "{outpath}/{dset}/{analysis_condition}/aln/{samp}.{host}.{virus}.sorted.bam.bai"
 	resources:
 		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.bam, ), attempt),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	wildcard_constraints:
-		dset = ".+_seeksv\d+"
+		analysis_condition = 'seeksv\d+'
 	params:
 		mem_gb = lambda wildcards, resources: int(resources.mem_mb / 1e3) - 1
 	container:
@@ -117,16 +117,16 @@ rule seeksv_getclip:
 		bam = rules.sort_seeksv.output.bam,
 		bai = rules.sort_seeksv.output.bai
 	output: 
-		clip_fq = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.clip.fq.gz",
-		clip = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.clip.gz",
-		unmapped_1 = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.unmapped_1.fq.gz",
-		unmapped_2 = "{outpath}/{dset}/clipped_reads/{samp}.{host}.{virus}.unmapped_2.fq.gz",	
+		clip_fq = "{outpath}/{dset}/{analysis_condition}/clipped_reads/{samp}.{host}.{virus}.clip.fq.gz",
+		clip = "{outpath}/{dset}/{analysis_condition}/clipped_reads/{samp}.{host}.{virus}.clip.gz",
+		unmapped_1 = "{outpath}/{dset}/{analysis_condition}/clipped_reads/{samp}.{host}.{virus}.unmapped_1.fq.gz",
+		unmapped_2 = "{outpath}/{dset}/{analysis_condition}/clipped_reads/{samp}.{host}.{virus}.unmapped_2.fq.gz",	
 	resources:
 		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.bam, ), attempt, 0.2),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	wildcard_constraints:
-		dset = ".+_seeksv\d+"
+		analysis_condition = 'seeksv\d+'
 	params:
 		prefix = lambda wildcards, output: os.path.splitext(os.path.splitext(output.clip)[0])[0]
 	container:
@@ -141,14 +141,14 @@ rule align_seeksv_clip:
 		fq = rules.seeksv_getclip.output.clip_fq,
 		idx = rules.host_virus_index_seeksv.output.idx
 	output:
-		bam = "{outpath}/{dset}/aln/{samp}.{host}.{virus}.clip.bam"
+		bam = "{outpath}/{dset}/{analysis_condition}/aln/{samp}.{host}.{virus}.clip.bam"
 	resources:
 		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.idx, attempt),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	threads: 8
 	wildcard_constraints:
-		dset = ".+_seeksv\d+"
+		analysis_condition = 'seeksv\d+'
 	params:
 		prefix = lambda wildcards, input: os.path.splitext(input.idx[0])[0]
 	container:
@@ -164,14 +164,14 @@ rule seeksv:
 		bam = rules.align_seeksv_all.output.bam,
 		bam_clip = rules.align_seeksv_clip.output.bam
 	output:
-		ints = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.txt",
-		unmapped = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.unmapped.clip.fq.gz"
+		ints = "{outpath}/{dset}/{analysis_condition}/ints/{samp}.{host}.{virus}.integrations.txt",
+		unmapped = "{outpath}/{dset}/{analysis_condition}/ints/{samp}.{host}.{virus}.unmapped.clip.fq.gz"
 	resources:
 		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.clip, input.bam, input.bam_clip), attempt),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	wildcard_constraints:
-		dset = ".+_seeksv\d+"
+		analysis_condition = 'seeksv\d+'
 	container:
 		"docker://szsctt/seeksv:1"
 	shell:
@@ -179,69 +179,3 @@ rule seeksv:
 		/var/work/seeksv/seeksv getsv {input.bam_clip} {input.bam} {input.clip} {output.ints} {output.unmapped}
 		"""		
 
-rule get_host_chroms:
-	input:
-		fa = lambda wildcards: ref_names[wildcards.host]
-	output:
-		fa = temp("{outpath}/seeksv_refs/data/{host}/{host}.fa"),
-		fai = temp("{outpath}/seeksv_refs/data/{host}/{host}.fa.fai"),
-		chromlist = "{outpath}/seeksv_refs/data/{host}/{host}.txt"
-	resources:
-		mem_mb= lambda wildcards, attempt: attempt * 500,
-		time = lambda wildcards, attempt: ('5:00', '20:00', '1:00:00', '7-00:00:00')[attempt - 1],
-		nodes = 1
-	wildcard_constraints:
-		dset = ".+_seeksv\d+"
-	container:
-		"docker://szsctt/seeksv:1"
-	shell:
-			"""
-			cp {input.fa} {output.fa}
-			samtools faidx {output.fa}
-			awk 'BEGIN {{ ORS = " " }} {{a[$1]}} END {{for (i in a) print i}}' \
-				{output.fai} > {output.chromlist}
-			"""
-
-rule make_host_bed:
-	input:
-		ints = rules.seeksv.output.ints,
-		chromlist = rules.get_host_chroms.output.chromlist
-	output:
-		bed = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.host.bed"
-	resources:
-		mem_mb= lambda wildcards, attempt: attempt * 2000,
-		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
-		nodes = 1
-	wildcard_constraints:
-		dset = ".+_seeksv\d+"
-	container:
-		"docker://szsctt/seeksv:1"
-	shell:
-		"""
-		python3 scripts/write_seeksv_bed.py --seeksv-output {input.ints} --chromlist {input.chromlist} --output {output.bed}
-		"""	
-		
-rule merge_host_bed:
-	input:
-		bed = rules.make_host_bed.output.bed
-	output:
-		tmp = temp("{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.sorted.bed"),
-		merged = temp("{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.merged.bed")
-	params:
-		d = lambda wildcards: int(analysis_df_value(wildcards, analysis_df, 'merge_dist')),
-		n = lambda wildcards: int(analysis_df_value(wildcards, analysis_df, 'min_reads')),		
-	resources:
-		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.bed, ), attempt),
-		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
-		nodes = 1
-	wildcard_constraints:
-		dset = ".+_seeksv\d+"
-	container:
-		"docker://szsctt/seeksv:1"	
-	shell:
-		"""
-		sort -k1,1 -k2,2n {input.bed} > {output.tmp}
-		bedtools merge -i {output.tmp} -d {params.d} -c 1 -o count | awk -F"\t" -v OFS="\t" '$4 >= {params.n}' > {output.merged}
-		"""
-		
-		

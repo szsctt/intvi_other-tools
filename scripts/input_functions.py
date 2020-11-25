@@ -1,24 +1,31 @@
 import pdb
+import os
 
 def analysis_df_value(wildcards, analysis_df, column_name):
+
+	# if we care about analysis condition
+	if hasattr(wildcards, 'analysis_condition'):
 	
-	# get a value from the row of the df corresponding to this analysis condition
-	unique = f"{wildcards.dset}"
+		# get a value from the row of the df corresponding to this analysis condition
+		dataset = analysis_df[analysis_df['experiment'] == wildcards.dset]
 
-	return analysis_df.loc[(analysis_df['analysis_condition'] == unique).idxmax(), column_name] 
+		return dataset.loc[(dataset['analysis_condition'] == wildcards.analysis_condition).idxmax(), column_name] 
+	# if we don't care
+	else:
+		return analysis_df.loc[(analysis_df['experiment'] == wildcards.dset).idxmax(), column_name] 
 
 
-def get_input_reads(wildcards, read_num):
+def get_input_reads(wildcards, analysis_df, read_num):
 	assert read_num in (1, 2)
 	if read_num == 1:
-		return f"{analysis_df_value(wildcards, 'read_folder')}/{wildcards.samp}{analysis_df_value(wildcards, 'R1_suffix')}"
+		return f"{analysis_df_value(wildcards, analysis_df, 'read_folder')}/{wildcards.samp}{analysis_df_value(wildcards, analysis_df,  'R1_suffix')}"
 	if read_num == 2:
-		return f"{analysis_df_value(wildcards, 'read_folder')}/{wildcards.samp}{analysis_df_value(wildcards, 'R2_suffix')}"	
+		return f"{analysis_df_value(wildcards, analysis_df,  'read_folder')}/{wildcards.samp}{analysis_df_value(wildcards, analysis_df,  'R2_suffix')}"	
 
 
-def get_polyidus_reads(wildcards, read_num):
-
-	if analysis_df_value(wildcards, 'trim') == 1:
+def get_reads(wildcards, analysis_df, rules, read_num):
+	assert read_num in (1, 2)
+	if analysis_df_value(wildcards, analysis_df, 'trim') == 1:
 		if read_num == 1:
 			return rules.trim.output.proc_r1
 		else:
@@ -41,4 +48,14 @@ def resources_list_with_min_and_max(file_name_list, attempt, mult_factor=2, mini
 	resource = min(maximum, resource)
 	
 	return max(minimum, resource)
+
+
+def tool_datsets_regex(wildcards, analysis_df):
+	# get tool from wildcards
+	tool = analysis_df_value(wildcards, analysis_df, 'tool')
+
+	# get all analysis conditions for this tool
+	return "|".join(analysis_df.loc[analysis_df['tool'] == tool, 'analysis_condition'])
+	
+	
 
