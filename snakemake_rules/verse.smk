@@ -85,8 +85,6 @@ rule verse:
 		similarity_thrd = lambda wildcards: analysis_df_value(wildcards, analysis_df, 'similarity_thrd'),
 		chop_read_length = lambda wildcards: int(analysis_df_value(wildcards, analysis_df, 'chop_read_length')),
 		minIdentity = lambda wildcards: int(analysis_df_value(wildcards, analysis_df, 'minIdentity')),	
-	wildcard_constraints:
-		analysis_condition = 'verse\d+'
 	container:
 		"docker://szsctt/verse:1"
 	resources:

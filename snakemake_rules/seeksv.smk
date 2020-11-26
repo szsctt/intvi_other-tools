@@ -9,7 +9,7 @@ rule host_virus_index_seeksv:
 	container:
 		"docker://szsctt/seeksv:1"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.host, input.virus), attempt, 0.2),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.host, input.virus), attempt, 5),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	shell:
@@ -32,7 +32,7 @@ rule align_seeksv_all:
 	container:
 		"docker://szsctt/seeksv:1"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.idx, attempt),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.idx, attempt, 5),
 		nodes = 1,
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 	shell:
@@ -48,7 +48,7 @@ rule dedup_seeksv:
 		bam = "{outpath}/{dset}/seeksv/aln/{samp}.{host}.{virus}.dup.bam",
 		metrics = "{outpath}/{dset}/seeksv/aln/{samp}.{host}.{virus}.dup.txt"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.bam, ), attempt, mult_factor=0.5, minimum=3000),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.bam, ), attempt, mult_factor=1, minimum=3000),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	params:
@@ -114,7 +114,7 @@ rule seeksv_getclip:
 		unmapped_1 = "{outpath}/{dset}/seeksv/clipped_reads/{samp}.{host}.{virus}.unmapped_1.fq.gz",
 		unmapped_2 = "{outpath}/{dset}/seeksv/clipped_reads/{samp}.{host}.{virus}.unmapped_2.fq.gz",	
 	resources:
-		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.bam, ), attempt, 0.2),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.bam, ), attempt, 1),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	params:
@@ -133,7 +133,7 @@ rule align_seeksv_clip:
 	output:
 		bam = "{outpath}/{dset}/seeksv/aln/{samp}.{host}.{virus}.clip.bam"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.idx, attempt),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.idx, attempt, 5),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	threads: 8
