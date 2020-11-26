@@ -3,16 +3,7 @@ import os
 
 def analysis_df_value(wildcards, analysis_df, column_name):
 
-	# if we care about analysis condition
-	if hasattr(wildcards, 'analysis_condition'):
-	
-		# get a value from the row of the df corresponding to this analysis condition
-		dataset = analysis_df[analysis_df['experiment'] == wildcards.dset]
-
-		return dataset.loc[(dataset['analysis_condition'] == wildcards.analysis_condition).idxmax(), column_name] 
-	# if we don't care
-	else:
-		return analysis_df.loc[(analysis_df['experiment'] == wildcards.dset).idxmax(), column_name] 
+	return analysis_df.loc[(analysis_df['experiment'] == wildcards.dset).idxmax(), column_name] 
 
 
 def get_input_reads(wildcards, analysis_df, read_num):
@@ -36,14 +27,16 @@ def get_reads(wildcards, analysis_df, rules, read_num):
 		else:
 			return get_input_reads(wildcards, 2)
 			
+
 def get_vifi_resource(wildcards, analysis_df, resource_name):
 	"""Get resources required for vifi"""
 	host_idx = analysis_df[(analysis_df['host'] == wildcards.host) & (analysis_df['tool'] == 'vifi')].index[0]
 	return analysis_df.loc[host_idx, resource_name]
 	
+
 def resources_list_with_min_and_max(file_name_list, attempt, mult_factor=2, minimum = 100, maximum = 50000):
-	
-	resource = int(sum([os.stat(file).st_size/1e6 for file in file_name_list]))
+
+	resource = int(sum([os.stat(file).st_size/1e6 for file in file_name_list]) * mult_factor * attempt) 
 	
 	resource = min(maximum, resource)
 	
