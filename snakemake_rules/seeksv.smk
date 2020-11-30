@@ -37,6 +37,7 @@ rule align_seeksv_all:
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 	shell:
 		"""
+		rm -f {output.bam}.tmp*
 		bwa mem -t {threads} {params.prefix} {input.fastq1} {input.fastq2} | samtools sort -o {output.bam} -
 		samtools index {output.bam}
 		"""
