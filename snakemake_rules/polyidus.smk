@@ -40,7 +40,7 @@ rule polyidus:
 		host_idx = lambda wildcards, input: os.path.splitext(os.path.splitext(input.host_idx[0])[0])[0],
 		virus_idx = lambda wildcards, input: os.path.splitext(os.path.splitext(input.virus_idx[0])[0])[0],
 	resources:
-		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.host_idx, attempt),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.host_idx, attempt, 5, 2000),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1]
 	container:
 		"docker://szsctt/polyidus:2"
