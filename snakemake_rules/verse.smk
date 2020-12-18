@@ -77,14 +77,14 @@ rule verse:
 		virus_blast = lambda wildcards, input: os.path.splitext(os.path.realpath(input.virus_blast[0]))[0],
 		host_blast = lambda wildcards, input: os.path.splitext(os.path.realpath(input.host_blast[0]))[0],
 		virus_fa = lambda wilcards, input: os.path.realpath(input.virus_fasta),
-		detection_mode = lambda wildcards: analysis_df_value(wildcards, analysis_df, 'detection_mode'),
-		flank_region_size = lambda wildcards: int(analysis_df_value(wildcards, analysis_df, 'flank_region_size')),
-		sensitivity_level = lambda wildcards: int(analysis_df_value(wildcards, analysis_df,  'sensitivity_level')),
-		min_contig_length = lambda wildcards: int(analysis_df_value(wildcards,analysis_df, 'min_contig_length')),
-		blastn_evalue_thrd = lambda wildcards: analysis_df_value(wildcards, analysis_df, 'blastn_evalue_thrd'),
-		similarity_thrd = lambda wildcards: analysis_df_value(wildcards, analysis_df, 'similarity_thrd'),
-		chop_read_length = lambda wildcards: int(analysis_df_value(wildcards, analysis_df, 'chop_read_length')),
-		minIdentity = lambda wildcards: int(analysis_df_value(wildcards, analysis_df, 'minIdentity')),	
+		detection_mode = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'verse', 'detection_mode'),
+		flank_region_size = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'verse', 'flank_region_size')),
+		sensitivity_level = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'verse', 'sensitivity_level')),
+		min_contig_length = lambda wildcards: int(analysis_df_tool_value(wildcards,analysis_df, 'verse', 'min_contig_length')),
+		blastn_evalue_thrd = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'verse', 'blastn_evalue_thrd'),
+		similarity_thrd = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'verse', 'similarity_thrd'),
+		chop_read_length = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'verse', 'chop_read_length')),
+		minIdentity = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'verse', 'minIdentity')),	
 	container:
 		"docker://szsctt/verse:1"
 	resources:

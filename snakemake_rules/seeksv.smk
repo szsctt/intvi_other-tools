@@ -73,7 +73,7 @@ rule dedup_seeksv:
 		
 def get_seeksv_alignment(wildcards):
 	# if we want to do dedupliation
-	if analysis_df_value(wildcards, analysis_df, 'dedup') == 1:
+	if analysis_df_tool_value(wildcards, analysis_df, 'seeksv', 'dedup') == 1:
 		return rules.dedup_seeksv.output.bam
 	
 	# no deduplication
