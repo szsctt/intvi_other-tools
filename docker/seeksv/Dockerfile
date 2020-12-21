@@ -1,6 +1,6 @@
 # Dockerfile for seeksv
 
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 #  $ docker build . -t szsctt/seeksv:latest -t szsctt/seeksv:1
 #  $ docker run --rm -it --entrypoint /bin/bash szsctt/seeksv:latest
@@ -26,6 +26,8 @@ RUN apt-get -y update && \
  apt-get -y install rsync  && \
  apt-get -y install unzip  && \
  apt-get -y install default-jre &&\
+ apt-get -y install python3 &&\
+ apt-get -y install bedtools &&\ 
  apt-get clean
 
  # Make work directory
