@@ -13,7 +13,7 @@ rule bwt2_index:
 							".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"
 						)
 	container:
-		"docker://szsctt/polyidus:2"
+		"docker://szsctt/polyidus:3"
 	params:
 		prefix = lambda wildcards, output: os.path.splitext(os.path.splitext(output[0])[0])[0]
 	resources:
@@ -43,7 +43,7 @@ rule polyidus:
 		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.host_idx, attempt, 5, 2000),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1]
 	container:
-		"docker://szsctt/polyidus:2"
+		"docker://szsctt/polyidus:3"
 	shell:
 		"""
 		rm -rf {params.output}/*
