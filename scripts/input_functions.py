@@ -23,9 +23,9 @@ def get_reads(wildcards, analysis_df, rules, read_num):
 			return rules.trim.output.proc_r2
 	else:
 		if read_num == 1:
-			return get_input_reads(wildcards, 1)
+			return get_input_reads(wildcards, analysis_df, 1)
 		else:
-			return get_input_reads(wildcards, 2)
+			return get_input_reads(wildcards, analysis_df, 2)
 			
 
 def get_vifi_resource(wildcards, analysis_df, resource_name):
