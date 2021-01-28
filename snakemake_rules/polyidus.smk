@@ -35,6 +35,7 @@ rule polyidus:
 						)
 	output:
 		ints = "{outpath}/{dset}/polyidus/{host}.{virus}.{samp}/results/exactHpvIntegrations.tsv",
+		bed = "{outpath}/{dset}/polyidus/{host}.{virus}.{samp}/results/exactHpvIntegrations.bed",
 	params:
 		output = lambda wildcards, output: os.path.dirname(os.path.dirname(output.ints)),
 		host_idx = lambda wildcards, input: os.path.splitext(os.path.splitext(input.host_idx[0])[0])[0],
