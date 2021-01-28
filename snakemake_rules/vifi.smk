@@ -123,7 +123,8 @@ rule vifi:
 		fastq2 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 2),
 		chrom_list = rules.vifi_data_repo.output.chromosomes,
 	output:
-		clusters = "{outpath}/{dset}/vifi/{samp}.{host}.{virus}/output.clusters.txt"
+		clusters = "{outpath}/{dset}/vifi/{samp}.{host}.{virus}/output.clusters.txt",
+		range = "{outpath}/{dset}/vifi/{samp}.{host}.{virus}/output.clusters.txt.range"
 	params:
 		reference_repo = lambda wildcards, input: os.path.dirname(input.fa),
 		aa_data_repo = lambda wildcards, input: os.path.dirname(input.host_list),
