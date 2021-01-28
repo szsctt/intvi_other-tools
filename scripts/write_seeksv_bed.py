@@ -26,9 +26,26 @@ def main(args):
 		
 		for row in reader:
 			if row['@left_chr'] in chroms:
-				row = (row['@left_chr'], row['left_pos'], row['left_pos'], row['left_strand'])
+				# this is a guess - not documented if microhomology comes before or after position
+				if row['left_strand'] == "+":
+					start = int(row['left_pos'])
+					stop = start + int(row['microhomology_length'])
+				else:
+					start = int(row['left_pos']) -  int(row['microhomology_length'])
+					stop = int(row['left_pos'])			
+					
+				row = (row['@left_chr'], start, stop, row['left_strand'])
 				writer.writerow(row)
+				
 			elif row['right_chr'] in chroms:
+				# this is a guess - not documented if microhomology comes before or after position
+				if row['right_strand'] == "+":
+					start = int(row['right_pos'])
+					stop = start + int(row['microhomology_length'])
+				else:
+					start = int(row['right_pos']) -  int(row['microhomology_length'])
+					stop = int(row['right_pos'])		
+			
 				row = (row['right_chr'], row['right_pos'], row['right_pos'], row['right_strand'])
 				writer.writerow(row)
 	
