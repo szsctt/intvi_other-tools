@@ -25,29 +25,34 @@ def main(args):
 		writer = csv.writer(bed, delimiter='\t')
 		
 		for row in reader:
+		
+			if row['svtype'] != 'CTX':
+				continue
+			if row['@left_chr'] in chroms and row['right_chr'] in chroms:
+				continue
+			
 			if row['@left_chr'] in chroms:
-				# this is a guess - not documented if microhomology comes before or after position
-				if row['left_strand'] == "+":
+				# this is a guess - can't find actual meaning of microhomology documented
+				if int(row['microhomology_length']) > 0:
 					start = int(row['left_pos'])
 					stop = start + int(row['microhomology_length'])
 				else:
-					start = int(row['left_pos']) -  int(row['microhomology_length'])
-					stop = int(row['left_pos'])			
+					start = int(row['left_pos']) + int(row['microhomology_length'])		
+					stop = int(row['left_pos'])	
 					
-				row = (row['@left_chr'], start, stop, row['left_strand'])
-				writer.writerow(row)
+				write_row = (row['@left_chr'], start, stop, row['left_strand'])
+				writer.writerow(write_row)
 				
 			elif row['right_chr'] in chroms:
-				# this is a guess - not documented if microhomology comes before or after position
-				if row['right_strand'] == "+":
+				if int(row['microhomology_length']) > 0:
 					start = int(row['right_pos'])
 					stop = start + int(row['microhomology_length'])
 				else:
-					start = int(row['right_pos']) -  int(row['microhomology_length'])
+					start = int(row['right_pos']) +  int(row['microhomology_length'])
 					stop = int(row['right_pos'])		
 			
-				row = (row['right_chr'], row['right_pos'], row['right_pos'], row['right_strand'])
-				writer.writerow(row)
+				write_row = (row['right_chr'], row['right_pos'], row['right_pos'], row['right_strand'])
+				writer.writerow(write_row)
 	
 	
 if __name__ == "__main__":
