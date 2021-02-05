@@ -4,3 +4,6 @@
 [submodule "vifi/ViFi"]
 	path = docker/vifi/ViFi
 	url = https://github.com/szsctt/ViFi.git
+[submodule "docker/VSeq-Toolkit/VSeq-Toolkit"]
+	path = docker/VSeq-Toolkit/VSeq-Toolkit
+	url = https://github.com/CompMeth/VSeq-Toolkit.git
