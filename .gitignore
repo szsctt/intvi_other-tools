@@ -1,0 +1,13 @@
+.snakemake/
+data/reads/logs/
+data/reads/references/
+data/reads/test_polyidus0/
+data/reads/test_seeksv0/
+data/reads/test_verse0/
+data/reads/test_vifi0/
+data/reads/verse_references/
+data/reads/vifi_refs/
+scripts/__pycache__/
+*.sif
+*log
+*out

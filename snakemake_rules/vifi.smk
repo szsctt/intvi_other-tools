@@ -12,7 +12,7 @@ rule host_virus_index:
 	container:
 		"docker://szsctt/vifi:1"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: int(attempt * 5 * (os.stat(input.host).st_size/1e6 + os.stat(input.virus).st_size/1e6)),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.host, input.virus), attempt),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	shell:
@@ -35,24 +35,19 @@ rule vifi_faidx:
 		samtools faidx {input.fa}
 		mv {params.fai} {output.fai}
 		"""
-
-def get_vifi_resource(wildcards, resource_name):
-	"""Get resources required for vifi"""
-	host_idx = analysis_df[(analysis_df['host'] == wildcards.host) & (analysis_df['tool'] == 'vifi')].index[0]
-	return analysis_df.loc[host_idx, resource_name]
 		
 rule vifi_data_repo:
 	input:
 		fa = lambda wildcards: ref_names[wildcards.host],
 		fai = rules.vifi_faidx.output.fai,
-		mappability = lambda wildcards: get_vifi_resource(wildcards, 'host_mappability'),
-		mappability_exclude = lambda wildcards: get_vifi_resource(wildcards, 'host_mappability_exclude'),
-		genes = lambda wildcards: get_vifi_resource(wildcards, 'host_genes'),
-		exons = lambda wildcards: get_vifi_resource(wildcards, 'host_exons'),
-		oncogenes = lambda wildcards: get_vifi_resource(wildcards, 'host_oncogenes'),
-		centromeres = lambda wildcards: get_vifi_resource(wildcards, 'host_centromeres'),
-		conserved = lambda wildcards: get_vifi_resource(wildcards, 'host_conserved_regions'),
-		segdup = lambda wildcards: get_vifi_resource(wildcards, 'host_segdup')	
+		mappability = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_mappability'),
+		mappability_exclude = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_mappability_exclude'),
+		genes = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_genes'),
+		exons = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_exons'),
+		oncogenes = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_oncogenes'),
+		centromeres = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_centromeres'),
+		conserved = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_conserved_regions'),
+		segdup = lambda wildcards: get_vifi_resource(wildcards, analysis_df, 'host_segdup')	
 	output:
 		chromosomes = "{outpath}/vifi_refs/data_repo/{host}/{host}_chromosome-list.txt",
 		file_list = "{outpath}/vifi_refs/data_repo/{host}/file_list.txt",
@@ -124,27 +119,25 @@ rule vifi:
 		fa = rules.vifi_data_repo.output.fa,
 		idx = rules.host_virus_index.output.idx,
 		host_list = rules.data_repo_host_list.output[0],
-		fastq1 = lambda wildcards: get_polyidus_reads(wildcards, 1),
-		fastq2 = lambda wildcards: get_polyidus_reads(wildcards, 2),
+		fastq1 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 1),
+		fastq2 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 2),
 		chrom_list = rules.vifi_data_repo.output.chromosomes,
-
 	output:
-		clusters = "{outpath}/{dset}/vifi.{samp}.{host}.{virus}/output.clusters.txt",
-		ints = "{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.txt",
-		fake_merged = temp("{outpath}/{dset}/ints/{samp}.{host}.{virus}.integrations.merged.bed")
+		clusters = "{outpath}/{dset}/vifi/{samp}.{host}.{virus}/output.clusters.txt",
+		range = "{outpath}/{dset}/vifi/{samp}.{host}.{virus}/output.clusters.txt.range"
 	params:
 		reference_repo = lambda wildcards, input: os.path.dirname(input.fa),
 		aa_data_repo = lambda wildcards, input: os.path.dirname(input.host_list),
 		outdir = lambda wildcards, output: os.path.dirname(output.clusters),
 		reference = lambda wildcards, input: os.path.splitext(input.idx[0])[0]
 	wildcard_constraints:
-		dset = ".+_vifi\d+"
+		analysis_condition = "vifi\d+"
 	container:
 		"docker://szsctt/vifi:1"
 	resources:
-		mem_mb= lambda wildcards, attempt: int(attempt * 10000),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.idx), attempt),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1]
-	threads: 5
+	threads: 8
 	shell:
 		"""
 		export AA_DATA_REPO=$(realpath {params.aa_data_repo})
@@ -153,12 +146,9 @@ rule vifi:
 		python $VIFI_DIR/scripts/run_vifi.py \
 		-c {threads} \
 		-f {input.fastq1} -r {input.fastq2} \
-		--reference {input.fa} \
+		--reference {params.reference} \
 		-v {wildcards.virus} \
 		-o {params.outdir} \
 		-d True \
 		-C {input.chrom_list}
-		
-		cp {output.clusters} {output.ints}
-		cp {output.clusters} {output.fake_merged}
 		"""			
