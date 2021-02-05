@@ -1,4 +1,3 @@
-#https://hub.docker.com/_/python
 
 #  $ docker build . -t szsctt/polyidus:latest -t szsctt/polyidus:3
 #  $ docker run --rm -it szsctt/polyidus:latest /bin/bash

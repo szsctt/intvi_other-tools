@@ -8,4 +8,6 @@
 
 FROM namphuon/vifi
 
-COPY ViFi/scripts /home/scripts
+COPY ViFi/scripts /home/ViFi/scripts
+
+ENV VIFI_DIR=/home/ViFi
