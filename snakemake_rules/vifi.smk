@@ -145,10 +145,10 @@ rule vifi:
 		
 		python $VIFI_DIR/scripts/run_vifi.py \
 		-c {threads} \
-		-f {input.fastq1} -r {input.fastq2} \
-		--reference {params.reference} \
+		-f $(realpath {input.fastq1}) -r $(realpath {input.fastq2}) \
+		--reference $(realpath {params.reference}) \
 		-v {wildcards.virus} \
-		-o {params.outdir} \
+		-o $(realpath {params.outdir}) \
 		-d True \
-		-C {input.chrom_list}
+		-C $(realpath {input.chrom_list})
 		"""			
