@@ -24,5 +24,7 @@ RUN apt-get -y update && \
     cd /var/work &&\
     git clone https://github.com/CompMeth/VSeq-Toolkit.git
     
+COPY VSeq-Toolkit.txt /var/work/VSeq-Toolkit/
+    
 ENV VSeqToolkit=/var/work/VSeq-Toolkit
 
