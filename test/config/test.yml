@@ -14,10 +14,10 @@ test:
    
    #run polyidus?
    # https://github.com/hoffmangroup/polyidus
-   # note container contains my fork: https://github.com/szsctt/polyidus
-   polyidus_params:
-     trim: True
-     aligner: "bowtie2"
+#   # note container contains my fork: https://github.com/szsctt/polyidus
+#   polyidus_params:
+#     trim: True
+#     aligner: "bowtie2"
       
    # run vifi
 #   vifi_params:
@@ -46,9 +46,9 @@ test:
 #     minIdentity: 80     
 #     trim: True
  
-   seeksv_params:
-     trim: True
-     dedup: False
+#   seeksv_params:
+#     trim: True
+#     dedup: False
      
    vseq_toolkit_params:
      qua: 20

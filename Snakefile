@@ -105,6 +105,7 @@ for i, row in analysis_df.iterrows():
 																	samp = samples
 														))																		
 
+
 rule all: 
 	input:
 		set(analysis_summaries),
@@ -119,3 +120,5 @@ include: "snakemake_rules/seeksv.smk"
 include: "snakemake_rules/verse.smk"
 
 include: "snakemake_rules/vifi.smk"
+
+include: "snakemake_rules/vseq.smk"

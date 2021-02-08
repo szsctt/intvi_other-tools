@@ -23,6 +23,22 @@ verse_default_similarity_thrd = 0.8
 verse_default_chop_read_length = 25
 verse_default_minIdentity = 80
 
+vseq_default_qua = 20
+vseq_default_lenPer = 50
+vseq_default_vecVecFusion = 'false'
+vseq_default_stringencyVec = 'high'
+vseq_default_UMthresholdVec = 0.95
+vseq_default_minMapSpanVec = 20
+vseq_default_distVecVec = 10
+vseq_default_opVecVec = 5
+vseq_default_idenVecVec = 0.95
+vseq_default_stringencyVecGen = 'high'
+vseq_default_UMthresholdVecGen = 0.95
+vseq_default_minMapSpanVecGen = 20
+vseq_default_distVecGen = 10
+vseq_default_opVecGen = 5
+vseq_default_idenVecGen = 95
+vseq_default_clusterRange = 3
 
 def parse_analysis_config(config):
 	
@@ -72,6 +88,9 @@ def parse_analysis_config(config):
 
 		if 'seeksv_params' in config[dataset]:
 			analysis_conditions.append(make_seeksv_row(config, dataset))		
+			
+		if 'vseq_toolkit_params' in config[dataset]:
+			analysis_conditions.append(make_vseq_rows(config, dataset))	
 	
 	# make data frame 
 	return pd.DataFrame(analysis_conditions, columns = column_names)
@@ -159,8 +178,6 @@ def make_vifi_row(config, dataset):
 
 def make_polyidus_row(config, dataset):
 	#### parameters for polyidus ####
-	rows = []
-	i = 0
 
 	trim = get_bool(config[dataset]['polyidus_params'], 'trim', polyidus_default_trim, 'polyidus_params')	
 	aligner = get_entry_with_default(config[dataset]['polyidus_params'], 'aligner', polyidus_default_aligner, 'polyidus_params')
@@ -173,6 +190,61 @@ def make_polyidus_row(config, dataset):
 				}
 
 	return add_common_info(config, dataset, row)
+	
+def make_vseq_rows(config, dataset):
+	rows = []
+	i = 0
+	
+	qual = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'qua', vseq_default_qua, 'vseq_toolkit_params')
+	lenPer = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'lenPer', vseq_default_lenPer, 'vseq_toolkit_params')
+	vecVecFusion = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'vecVecFusion', vseq_default_vecVecFusion, 'vseq_toolkit_params')
+	stringencyVec = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'stringencyVec', vseq_default_stringencyVec, 'vseq_toolkit_params')
+	UMthresholdVec = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'UMthresholdVec', vseq_default_UMthresholdVec, 'vseq_toolkit_params')
+	minMapSpanVec = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'minMapSpanVec', vseq_default_minMapSpanVec, 'vseq_toolkit_params')
+	distVecVec =get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'distVecVec', vseq_default_distVecVec, 'vseq_toolkit_params')
+	opVecVec = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'opVecVec', vseq_default_opVecVec, 'vseq_toolkit_params')
+	idenVecVec = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'idenVecVec', vseq_default_idenVecVec, 'vseq_toolkit_params')
+	stringencyVecGen = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'stringencyVecGen', vseq_default_stringencyVecGen, 'vseq_toolkit_params')
+	UMthresholdVecGen = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'UMthresholdVecGen', vseq_default_UMthresholdVecGen, 'vseq_toolkit_params')
+	minMapSpanVecGen = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'minMapSpanVecGen', vseq_default_minMapSpanVecGen, 'vseq_toolkit_params')
+	distVecGen = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'distVecGen', vseq_default_distVecGen, 'vseq_toolkit_params')
+	opVecGen = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'opVecGen', vseq_default_opVecGen, 'vseq_toolkit_params')
+	idenVecGen = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'idenVecGen', vseq_default_idenVecGen, 'vseq_toolkit_params')
+	clusterRange = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'clusterRange', vseq_default_clusterRange, 'vseq_toolkit_params')
+
+	# for each host, get the 'annoTable'
+	
+	assert len(config[dataset]['analysis_host'].keys()) == 1
+	host = list(config[dataset]['analysis_host'].keys())[0]
+	assert host in config[dataset]['vseq_toolkit_params']['host_info']
+	annoTable = config[dataset]['vseq_toolkit_params']['host_info'][host]			
+		
+	row = {
+				'host_table' 		: annoTable,																
+				'tool'				: 'vseq_toolkit',	
+				'trim'				: 1,
+				'merge'				: 0,
+				'dedup'      		: 0,
+				'qual' 				: qual,
+				'lenPer'			: lenPer,
+				'vecVecFusion'		: vecVecFusion,
+				'stringencyVec'		: stringencyVec,
+				'UMthresholdVec'	: UMthresholdVec,
+				'minMapSpanVec'		: minMapSpanVec,
+				'distVecVec'		: distVecVec,
+				'opVecVec' 			: opVecVec,
+				'idenVecVec'		: idenVecVec,
+				'stringencyVecGen'	: stringencyVecGen,
+				'UMthresholdVecGen'	: UMthresholdVecGen,
+				'minMapSpanVecGen'	: minMapSpanVecGen,
+				'distVecGen'		: distVecGen,
+				'opVecGen'			: opVecGen,
+				'idenVecGen'		: idenVecGen,
+				'clusterRange'		: clusterRange,
+		}
+
+	return add_common_info(config, dataset, row)
+
 	
 def make_seeksv_row(config, dataset):
 	#### parameters for polyidus ####
@@ -187,6 +259,8 @@ def make_seeksv_row(config, dataset):
 					}
 
 	return add_common_info(config, dataset, row)
+
+
 
 
 def get_bool_value_from_config(config, dataset, key, default):

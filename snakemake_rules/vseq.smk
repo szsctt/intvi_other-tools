@@ -8,7 +8,7 @@ rule bwa_index:
 	output:
 		idx = multiext("{outpath}/refs/bwa/{genome}/{genome}.fa", ".amb", ".ann", ".bwt", ".pac", ".sa")
 	params:
-		prefix = lambda wildcards, output: os.path.splitext(output[0][0])
+		prefix = lambda wildcards, output: os.path.splitext(output[0])[0]
 	container:
 		"docker://szsctt/vseq:1"
 	resources:
@@ -19,18 +19,29 @@ rule bwa_index:
 		"""
 		 $VSeqToolkit/thirdPartyTools/bwa index -p {params.prefix} {input.genome}
 		"""
+rule link_virus:
+	input:
+		genome = lambda wildcards: ref_names[wildcards.genome],
+	output:
+		genome = "{outpath}/refs/bwa/{genome}/{genome}.fa"
+	container:
+		"docker://szsctt/vseq:1"
+	shell:
+		"""
+		ln -sf $(realpath {input.genome}) $(realpath {output.genome})
+		"""
 		
 rule vseq_toolkit_config:
 	input:
 		combined_idx = rules.host_virus_index_seeksv.output.idx,
-		vec_idx = multiext("{outpath}/refs/bwa/{virus}/{virus}.fa", ".amb", ".ann", ".bwt", ".pac", ".sa")
-		fastq1 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 1),
-		fastq2 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 2),
+		vec_idx = multiext("{outpath}/refs/bwa/{virus}/{virus}.fa", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+		fastq1 = lambda wildcards: get_input_reads(wildcards, analysis_df, 1),
+		fastq2 = lambda wildcards: get_input_reads(wildcards, analysis_df, 2),
 	output:
 		config = "{outpath}/{dset}/vseq_toolkit/{samp}.{host}.{virus}/config.txt"
 	params:
-		adapter1 = "",
-		adapter2 = "",
+		adapter1 = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'adapter_1'),
+		adapter2 = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'adapter_2'),
 		vec_idx = lambda wildcards, input: os.path.splitext(input.vec_idx[0])[0],
 		combined_idx = lambda wildcards, input: os.path.splitext(input.combined_idx[0])[0],
 	container:
@@ -38,14 +49,14 @@ rule vseq_toolkit_config:
 	shell:
 		"""
 		# General Parameters: Always set these parameters for executing any of the three MODES.
-		echo "file1= {input.fastq1}" > {output.confing}
-		echo "file2= {input.fastq2}" >> {output.confing}
-		echo "outDir= {wildcards.outpath}/{wildcards.dset}/vseq_toolkit/{wildcards.samp}.{wildcards.host}.{wildcards.virus}/" >> {output.confing}
+		echo "file1= $(realpath {input.fastq1})" > {output.config}
+		echo "file2= $(realpath {input.fastq2})" >> {output.config}
+		echo "outDir= $(realpath {wildcards.outpath}/{wildcards.dset}/vseq_toolkit/{wildcards.samp}.{wildcards.host}.{wildcards.virus}/)/" >> {output.config}
 		echo "bin= $VSeqToolkit/scripts/" >> {output.config}
 		echo "qua=20" >> {output.config}
 		echo "lenPer=50" >> {output.config}
 		echo "adapter1={params.adapter2}" >> {output.config}
-		echo "adapter2={params.adapter2}" >> output.config
+		echo "adapter2={params.adapter2}" >> {output.config}
 		echo "trimmer= $VSeqToolkit/thirdPartyTools/skewer" >> {output.config}
 		echo "aligner= $VSeqToolkit/thirdPartyTools/bwa" >> {output.config}
 		echo "samtools= $VSeqToolkit/thirdPartyTools/samtools" >> {output.config}
@@ -80,22 +91,24 @@ rule vseq_toolkit_config:
 		echo "clusterRange=3" >> {output.config}
 		echo "annoTable= $VSeqToolkit/testDir/testReferenceIndex/refSeqUCSCTablehg38.txt" >> {output.config}
 		echo "bedtools= $VSeqToolkit/thirdPartyTools/bedtools" >> {output.config}
-		""""
+		"""
 		
 rule vseq_toolkit:
 	input:
 		combined_idx = rules.host_virus_index_seeksv.output.idx,
-		vec_idx = multiext("{outpath}/refs/bwa/{virus}/{virus}.fa", ".amb", ".ann", ".bwt", ".pac", ".sa")
-		fastq1 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 1),
-		fastq2 = lambda wildcards: get_reads(wildcards, analysis_df, rules, 2),
+		combined_genome = rules.host_virus_index_seeksv.output.fa,
+		vec_idx = multiext("{outpath}/refs/bwa/{virus}/{virus}.fa", ".amb", ".ann", ".bwt", ".pac", ".sa"),
+		vec_genome = "{outpath}/refs/bwa/{virus}/{virus}.fa",
+		fastq1 = lambda wildcards: get_input_reads(wildcards, analysis_df, 1),
+		fastq2 = lambda wildcards: get_input_reads(wildcards, analysis_df, 2),
 		config = rules.vseq_toolkit_config.output.config
 	output:
 		csv = "{outpath}/{dset}/vseq_toolkit/{samp}.{host}.{virus}/ISGenomeVector.csv"
 	container:
 		"docker://szsctt/vseq:1"
 	shell:
-	"""
-	perl $VSeqToolkit/scripts/VSeq-TK.pl -c {input.config}
-	"""		
+		"""
+		perl $VSeqToolkit/scripts/VSeq-TK.pl -c {input.config}
+		"""		
 		
 				

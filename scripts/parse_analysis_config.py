@@ -362,7 +362,7 @@ def make_vseq_rows(config, dataset):
 				'distVecGen'		: distVecGen_i,
 				'opVecGen'			: opVecGen_i,
 				'idenVecGen'		: idenVecGen_i,
-				'clusterRange'		: clusterRange,
+				'clusterRange'		: clusterRange_i,
 				})
 			i += 1
 	return add_read_info(config, dataset, rows)
