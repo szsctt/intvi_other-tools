@@ -21,7 +21,7 @@ sample_dict = get_samples(config)
 
 # make dict with host/virus names as keys and paths to fasta files as values
 ref_names = {name: path for name, path in zip(list(analysis_df.host) + list(analysis_df.virus), 	
-																							list(analysis_df.host_fasta) + list(analysis_df.virus_fasta))} 
+				list(analysis_df.host_fasta) + list(analysis_df.virus_fasta))} 
 # check that each host/virus name is unique
 if len(ref_names.keys()) != len(set(analysis_df.host)) + len(set(analysis_df.virus)):
 	raise ValueError("Each host and virus reference name must be unique")				
@@ -94,7 +94,17 @@ for i, row in analysis_df.iterrows():
 																	host = row['host'],
 																	virus = row['virus'],
 																	samp = samples
-														))					
+														))			
+	elif row['tool'] == 'vseq_toolkit':
+		other_tool_targets |= set(expand("{outpath}/{dset}/vseq_toolkit/{samp}.{host}.{virus}/ISGenomeVector.csv", 
+																	outpath = row['outdir'],
+																	dset = row['experiment'],
+																	analysis_condition = row['analysis_condition'],
+																	host = row['host'],
+																	virus = row['virus'],
+																	samp = samples
+														))																		
+
 
 rule all: 
 	input:
@@ -110,3 +120,5 @@ include: "snakemake_rules/seeksv.smk"
 include: "snakemake_rules/verse.smk"
 
 include: "snakemake_rules/vifi.smk"
+
+include: "snakemake_rules/vseq.smk"

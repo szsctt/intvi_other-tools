@@ -2,13 +2,13 @@ import pdb
 import os
 
 def analysis_df_value(wildcards, analysis_df, column_name):
-	"""Get resources required for a dataset (but not tool-specific"""
+	"""Get resources required for a dataset (but not tool-specific)"""
 	#return analysis_df.loc[(analysis_df['experiment'] == wildcards.dset).idxmax(), column_name] 
 	row = analysis_df[(analysis_df['experiment'] == wildcards.dset)].index[0]
 	return analysis_df.loc[row, column_name]
 
 def analysis_df_tool_value(wildcards, analysis_df, tool, column_name):
-	"""Get resources required for a dataset (but not tool-specific"""
+	"""Get resources required for a dataset and tool"""
 	row = analysis_df[(analysis_df['experiment'] == wildcards.dset) & (analysis_df['tool'] == tool)].index[0]
 	return analysis_df.loc[row, column_name]
 

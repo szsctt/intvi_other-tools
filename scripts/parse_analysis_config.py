@@ -23,6 +23,22 @@ verse_default_similarity_thrd = [0.8]
 verse_default_chop_read_length = [25]
 verse_default_minIdentity = [80]
 
+vseq_default_qua = [20]
+vseq_default_lenPer = [50]
+vseq_default_vecVecFusion = ['false']
+vseq_default_stringencyVec = ['high']
+vseq_default_UMthresholdVec = [0.95]
+vseq_default_minMapSpanVec = [20]
+vseq_default_distVecVec = [10]
+vseq_default_opVecVec = [5]
+vseq_default_idenVecVec = [0.95]
+vseq_default_stringencyVecGen = ['high']
+vseq_default_UMthresholdVecGen = [0.95]
+vseq_default_minMapSpanVecGen = [20]
+vseq_default_distVecGen = [10]
+vseq_default_opVecGen = [5]
+vseq_default_idenVecGen = [95]
+vseq_default_clusterRange = [3]
 
 def parse_analysis_config(config):
 	
@@ -72,6 +88,9 @@ def parse_analysis_config(config):
 
 		if 'seeksv_params' in config[dataset]:
 			analysis_conditions += make_seeksv_rows(config, dataset)			
+
+		if 'vseq_toolkit_params' in config[dataset]:
+			analysis_conditions += make_vseq_rows(config, dataset)		
 	
 	# make data frame 
 	return pd.DataFrame(analysis_conditions, columns = column_names)
@@ -272,6 +291,82 @@ def make_seeksv_rows(config, dataset):
 	return add_read_info(config, dataset, rows)
 
 
+def make_vseq_rows(config, dataset):
+	rows = []
+	i = 0
+	
+	qual = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'qua', vseq_default_qua, 'vseq_toolkit_params')
+	lenPer = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'lenPer', vseq_default_lenPer, 'vseq_toolkit_params')
+	vecVecFusion = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'vecVecFusion', vseq_default_vecVecFusion, 'vseq_toolkit_params')
+	stringencyVec = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'stringencyVec', vseq_default_stringencyVec, 'vseq_toolkit_params')
+	UMthresholdVec = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'UMthresholdVec', vseq_default_UMthresholdVec, 'vseq_toolkit_params')
+	minMapSpanVec = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'minMapSpanVec', vseq_default_minMapSpanVec, 'vseq_toolkit_params')
+	distVecVec = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'distVecVec', vseq_default_distVecVec, 'vseq_toolkit_params')
+	opVecVec = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'opVecVec', vseq_default_opVecVec, 'vseq_toolkit_params')
+	idenVecVec = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'idenVecVec', vseq_default_idenVecVec, 'vseq_toolkit_params')
+	stringencyVecGen = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'stringencyVecGen', vseq_default_stringencyVecGen, 'vseq_toolkit_params')
+	UMthresholdVecGen = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'UMthresholdVecGen', vseq_default_UMthresholdVecGen, 'vseq_toolkit_params')
+	minMapSpanVecGen = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'minMapSpanVecGen', vseq_default_minMapSpanVecGen, 'vseq_toolkit_params')
+	distVecGen = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'distVecGen', vseq_default_distVecGen, 'vseq_toolkit_params')
+	opVecGen = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'opVecGen', vseq_default_opVecGen, 'vseq_toolkit_params')
+	idenVecGen = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'idenVecGen', vseq_default_idenVecGen, 'vseq_toolkit_params')
+	clusterRange = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'clusterRange', vseq_default_clusterRange, 'vseq_toolkit_params')
+
+	# for each host, get the 'annoTable'
+	annoTable = {}
+	for host in config[dataset]['analysis_hosts'].keys():
+		if host not in config[dataset]['vseq_toolkit_params']['host_info']:
+			print(f"host_info not provided: skipping VSeq-Toolkit for {host}")
+			continue	
+		if host not in annoTable:
+			annoTable[host] = []
+		annoTable[host].append(config[dataset]['vseq_toolkit_params']['host_info'][host])				
+		
+	for (qual_i, lenPer_i, vecVecFusion_i, stringencyVec_i, UMthresholdVec_i,
+			minMapSpanVec_i, distVecVec_i, opVecVec_i, idenVecVec_i, stringencyVecGen_i,
+			UMthresholdVecGen_i, minMapSpanVecGen_i, distVecGen_i, opVecGen_i,
+			idenVecGen_i, clusterRange_i, host, virus
+			) in itertools.product(
+			qual, lenPer, vecVecFusion, stringencyVec, UMthresholdVec,
+			minMapSpanVec, distVecVec, opVecVec, idenVecVec, stringencyVecGen,
+			UMthresholdVecGen, minMapSpanVecGen, distVecGen, opVecGen,
+			idenVecGen, clusterRange, config[dataset]['analysis_hosts'].keys(), 
+			config[dataset]['analysis_viruses'].keys()
+			):
+		for table in annoTable[host]:
+			condition = f"vseq-toolkit{i}"
+			rows.append({
+				'experiment' 		: dataset,
+				'host' 			 	: host,
+				'host_fasta' 		: config[dataset]['analysis_hosts'][host],
+				'host_table' 		: table,																
+				'virus'      		: virus,		
+				'virus_fasta'		: config[dataset]['analysis_viruses'][virus],	
+				'analysis_condition': condition,
+				'tool'				: 'vseq_toolkit',	
+				'trim'				: 1,
+				'merge'				: 0,
+				'dedup'      		: 0,
+				'qual' 				: qual_i,
+				'lenPer'			: lenPer_i,
+				'vecVecFusion'		: vecVecFusion_i,
+				'stringencyVec'		: stringencyVec_i,
+				'UMthresholdVec'	: UMthresholdVec_i,
+				'minMapSpanVec'		: minMapSpanVec_i,
+				'distVecVec'		: distVecVec_i,
+				'opVecVec' 			: opVecVec_i,
+				'idenVecVec'		: idenVecVec_i,
+				'stringencyVecGen'	: stringencyVecGen_i,
+				'UMthresholdVecGen'	: UMthresholdVecGen_i,
+				'minMapSpanVecGen'	: minMapSpanVecGen_i,
+				'distVecGen'		: distVecGen_i,
+				'opVecGen'			: opVecGen_i,
+				'idenVecGen'		: idenVecGen_i,
+				'clusterRange'		: clusterRange_i,
+				})
+			i += 1
+	return add_read_info(config, dataset, rows)
+
 def get_bool_value_from_config(config, dataset, key, default):
 	if key not in config[dataset]:
 		return default
@@ -315,8 +410,7 @@ def get_samples(config):
 		
 		samples[dataset] = samps
 		
-	return samples
-		
+	return samples	
 		
 def get_list_with_default(parent_dict, list_key, default, name):
 	if list_key not in parent_dict:
