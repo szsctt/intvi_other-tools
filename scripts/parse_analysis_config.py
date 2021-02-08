@@ -25,6 +25,7 @@ verse_default_minIdentity = [80]
 
 vseq_default_qua = [20]
 vseq_default_lenPer = [50]
+vseq_default_mode = ['default']
 vseq_default_vecVecFusion = ['false']
 vseq_default_stringencyVec = ['high']
 vseq_default_UMthresholdVec = [0.95]
@@ -71,7 +72,14 @@ def parse_analysis_config(config):
 									'flank_region_size', 'sensitivity_level', 
 									'min_contig_length', 'blastn_evalue_thrd', 
 									'similarity_thrd', 
-									'chop_read_length', 'minIdentity')		
+									'chop_read_length', 'minIdentity', 'qual', 'lenPer',
+									'mode', 'vecVecFusion', 'stringencyVec', 'UMthresholdVec',
+									'minMapSpanVec', 'distVecVec', 'opVecVec', 'idenVecVec',
+									'stringencyVecGen', 'UMthresholdVecGen', 'minMapSpanVecGen', 'distVecGen', 'opVecGen',
+									'idenVecGen', 'clusterRange', 'host_table'
+									)		
+
+
 
 	analysis_conditions = []
 	
@@ -297,6 +305,7 @@ def make_vseq_rows(config, dataset):
 	
 	qual = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'qua', vseq_default_qua, 'vseq_toolkit_params')
 	lenPer = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'lenPer', vseq_default_lenPer, 'vseq_toolkit_params')
+	mode = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'mode', vseq_default_lenPer, 'vseq_toolkit_params')
 	vecVecFusion = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'vecVecFusion', vseq_default_vecVecFusion, 'vseq_toolkit_params')
 	stringencyVec = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'stringencyVec', vseq_default_stringencyVec, 'vseq_toolkit_params')
 	UMthresholdVec = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'UMthresholdVec', vseq_default_UMthresholdVec, 'vseq_toolkit_params')
@@ -320,14 +329,14 @@ def make_vseq_rows(config, dataset):
 			continue	
 		if host not in annoTable:
 			annoTable[host] = []
-		annoTable[host].append(config[dataset]['vseq_toolkit_params']['host_info'][host])				
+		annoTable[host].append(config[dataset]['vseq_toolkit_params']['host_info'][host]['host_table'])				
 		
-	for (qual_i, lenPer_i, vecVecFusion_i, stringencyVec_i, UMthresholdVec_i,
+	for (qual_i, lenPer_i, mode_i, vecVecFusion_i, stringencyVec_i, UMthresholdVec_i,
 			minMapSpanVec_i, distVecVec_i, opVecVec_i, idenVecVec_i, stringencyVecGen_i,
 			UMthresholdVecGen_i, minMapSpanVecGen_i, distVecGen_i, opVecGen_i,
 			idenVecGen_i, clusterRange_i, host, virus
 			) in itertools.product(
-			qual, lenPer, vecVecFusion, stringencyVec, UMthresholdVec,
+			qual, lenPer, mode, vecVecFusion, stringencyVec, UMthresholdVec,
 			minMapSpanVec, distVecVec, opVecVec, idenVecVec, stringencyVecGen,
 			UMthresholdVecGen, minMapSpanVecGen, distVecGen, opVecGen,
 			idenVecGen, clusterRange, config[dataset]['analysis_hosts'].keys(), 
@@ -349,6 +358,7 @@ def make_vseq_rows(config, dataset):
 				'dedup'      		: 0,
 				'qual' 				: qual_i,
 				'lenPer'			: lenPer_i,
+				'mode'				: mode_i,
 				'vecVecFusion'		: vecVecFusion_i,
 				'stringencyVec'		: stringencyVec_i,
 				'UMthresholdVec'	: UMthresholdVec_i,

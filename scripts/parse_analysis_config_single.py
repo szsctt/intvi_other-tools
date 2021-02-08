@@ -25,6 +25,7 @@ verse_default_minIdentity = 80
 
 vseq_default_qua = 20
 vseq_default_lenPer = 50
+vseq_default_mode = 'default'
 vseq_default_vecVecFusion = 'false'
 vseq_default_stringencyVec = 'high'
 vseq_default_UMthresholdVec = 0.95
@@ -197,6 +198,7 @@ def make_vseq_rows(config, dataset):
 	
 	qual = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'qua', vseq_default_qua, 'vseq_toolkit_params')
 	lenPer = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'lenPer', vseq_default_lenPer, 'vseq_toolkit_params')
+	mode = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'mode', vseq_default_lenPer, 'vseq_toolkit_params')
 	vecVecFusion = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'vecVecFusion', vseq_default_vecVecFusion, 'vseq_toolkit_params')
 	stringencyVec = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'stringencyVec', vseq_default_stringencyVec, 'vseq_toolkit_params')
 	UMthresholdVec = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'UMthresholdVec', vseq_default_UMthresholdVec, 'vseq_toolkit_params')
@@ -227,6 +229,7 @@ def make_vseq_rows(config, dataset):
 				'dedup'      		: 0,
 				'qual' 				: qual,
 				'lenPer'			: lenPer,
+				'mode'				: mode,
 				'vecVecFusion'		: vecVecFusion,
 				'stringencyVec'		: stringencyVec,
 				'UMthresholdVec'	: UMthresholdVec,
