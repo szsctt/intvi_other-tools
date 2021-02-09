@@ -31,87 +31,17 @@ rule link_virus:
 		"""
 		cp $(realpath {input.genome}) $(realpath {output.genome})
 		"""
-		
-#rule vseq_toolkit_config:
-#	input:
-#		combined_idx = rules.host_virus_index_seeksv.output.idx,
-#		vec_idx = multiext("{outpath}/refs/bwa/{virus}/{virus}.fa", ".amb", ".ann", ".bwt", ".pac", ".sa"),
-#		fastq1 = lambda wildcards: get_input_reads(wildcards, analysis_df, 1),
-#		fastq2 = lambda wildcards: get_input_reads(wildcards, analysis_df, 2),
-#	output:
-#		config = "{outpath}/{dset}/vseq_toolkit/{samp}.{host}.{virus}.config.txt"
-#	params:
-#		adapter1 = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'adapter_1'),
-#		adapter2 = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'adapter_2'),	
-#		vec_idx = lambda wildcards, input: os.path.abspath(os.path.splitext(input.vec_idx[0])[0]),
-#		combined_idx = lambda wildcards, input: os.path.splitext(input.combined_idx[0])[0],
-#		qual = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'qual')),
-#		lenPer = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'lenPer')),
-#		mode = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'mode'),
-#		vecVecFusion = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'vecVecFusion'),
-#		stringencyVec = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'stringencyVec'),
-#		UMthresholdVec = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'UMthresholdVec'),
-#		minMapSpanVec = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'minMapSpanVec')),
-#		distVecVec = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'distVecVec')),
-#		opVecVec = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'opVecVec')),
-#		idenVecVec = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'idenVecVec')),
-#		stringencyVecGen = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'stringencyVecGen'),
-#		UMthresholdVecGen = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'UMthresholdVecGen'),
-#		minMapSpanVecGen = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'minMapSpanVecGen')),
-#		distVecGen = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'distVecGen')),
-#		opVecGen = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'opVecGen')),
-#		idenVecGen = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'idenVecGen')),
-#		clusterRange = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'clusterRange')),
-#		annoTable = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'host_table')
-#	container:
-#		"docker://szsctt/vseq:1"
-#	shell:
-#		"""
-#		# General Parameters: Always set these parameters for executing any of the three MODES.
-#		echo "file1= $(realpath {input.fastq1})" > {output.config}
-#		echo "file2= $(realpath {input.fastq2})" >> {output.config}
-#		echo "outDir= $(realpath {wildcards.outpath}/{wildcards.dset}/vseq_toolkit/{wildcards.samp}.{wildcards.host}.{wildcards.virus}/)/" >> {output.config}
-#		echo "bin= $VSeqToolkit/scripts/" >> {output.config}
-#		echo "qua={params.qual}" >> {output.config}
-#		echo "lenPer={params.lenPer}" >> {output.config}
-#		echo "adapter1={params.adapter1}" >> {output.config}
-#		echo "adapter2={params.adapter2}" >> {output.config}
-#		echo "trimmer= $VSeqToolkit/thirdPartyTools/skewer" >> {output.config}
-#		echo "aligner= $VSeqToolkit/thirdPartyTools/bwa" >> {output.config}
-#		echo "samtools= $VSeqToolkit/thirdPartyTools/samtools" >> {output.config}
-#		echo "mode={params.mode}" >> {output.config}
-#		
-#		# MODE 1: Contaminants Distribution Analysis
-#		echo "contAna=false" >> {output.config}
-#		echo "combinedRef= $VSeqToolkit/testDir/testReferenceIndex/referenceTestCombined.fa" >> {output.config}
-#		echo "stringencyCont=low" >> {output.config}
-#		echo "UMthresholdCont=0.95" >> {output.config}
-#		
-#		#  MODE 2: Vector-Vector Fusion Analysis
-#		echo "vecVecFusion={params.vecVecFusion}" >> {output.config}
-#		echo "vecRef= {params.vec_idx}" >> {output.config}
-#		echo "stringencyVec={params.stringencyVec}" >> {output.config}
-#		echo "UMthresholdVec={params.UMthresholdVec}" >> {output.config}
-#		echo "minMapSpanVec={params.minMapSpanVec}" >> {output.config}
-#		echo "distVecVec={params.distVecVec}" >> {output.config}
-#		echo "opVecVec={params.opVecVec}" >> {output.config}
-#		echo "idenVecVec={params.idenVecVec}" >> {output.config}
-#		
-#		# MODE 3: Vector-Host Fusion Analysis 
-#		echo "vecGenIS=true" >> {output.config}
-#		echo "vecRef= {params.vec_idx}" >> {output.config}
-#		echo "vecGenRef= $(realpath {params.combined_idx})" >> {output.config}
-#		echo "stringencyVecGen=high" >> {output.config}
-#		echo "UMthresholdVecGen={params.UMthresholdVecGen}" >> {output.config}
-#		echo "minMapSpanVecGen={params.minMapSpanVecGen}" >> {output.config}
-#		echo "distVecGen={params.distVecGen}" >> {output.config}
-#		echo "opVecGen={params.opVecGen}" >> {output.config}
-#		echo "idenVecGen={params.idenVecGen}" >> {output.config}
-#		echo "clusterRange={params.clusterRange}" >> {output.config}
-#		echo "annoTable= $VSeqToolkit/testDir/testReferenceIndex/refSeqUCSCTablehg38.txt" >> {output.config}
-#		echo "bedtools= $VSeqToolkit/thirdPartyTools/bedtools" >> {output.config}
-#		"""
-		
+	
+def format_sed_filename(to_replace, start, val):
+	return f"-e 's#{to_replace}#{start}{val}#g'"
+
+def format_sed_command(wildcards, analysis_df, to_replace, start, column):
+	val =  analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', column)
+	return format_sed_filename(to_replace, start, val)
+	
+def format_sed_command_int(wildcards, analysis_df, to_replace, start, column):
+	val =  int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', column))
+	return format_sed_filename(to_replace, start, val)
 		
 rule vseq_toolkit_config_template:
 	input:
@@ -122,62 +52,94 @@ rule vseq_toolkit_config_template:
 	output:
 		config = "{outpath}/{dset}/vseq_toolkit/{samp}.{host}.{virus}.config.txt"
 	params:
-		fastq1 = lambda wilcards, input: os.path.abspath(input.fastq1),
-		fastq2 = lambda wilcards, input: os.path.abspath(input.fastq2),
-		out_dir = lambda wildcards: os.path.abspath(f"{wildcards.outpath}/{wildcards.dset}/vseq_toolkit/{wildcards.samp}.{wildcards.host}.{wildcards.virus}"),
-		adapter1 = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'adapter_1'),
-		adapter2 = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'adapter_2'),	
-		vec_idx = lambda wildcards, input: os.path.abspath(os.path.splitext(input.vec_idx[0])[0]),
-		combined_idx = lambda wildcards, input: os.path.abspath(os.path.splitext(input.combined_idx[0])[0]),
-		qual = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'qual')),
-		lenPer = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'lenPer')),
-		mode = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'mode'),
-		vecVecFusion = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'vecVecFusion'),
-		stringencyVec = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'stringencyVec'),
-		UMthresholdVec = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'UMthresholdVec'),
-		minMapSpanVec = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'minMapSpanVec')),
-		distVecVec = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'distVecVec')),
-		opVecVec = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'opVecVec')),
-		idenVecVec = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'idenVecVec')),
-		stringencyVecGen = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'stringencyVecGen'),
-		UMthresholdVecGen = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'UMthresholdVecGen'),
-		minMapSpanVecGen = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'minMapSpanVecGen')),
-		distVecGen = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'distVecGen')),
-		opVecGen = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'opVecGen')),
-		idenVecGen = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'idenVecGen')),
-		clusterRange = lambda wildcards: int(analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'clusterRange')),
-		annoTable = lambda wildcards: analysis_df_tool_value(wildcards, analysis_df, 'vseq_toolkit', 'host_table')
+		fastq1 = lambda wildcards, input: format_sed_filename(
+								"file1= $VSeqToolkit/testDir/testData/testDataCombined.R1.fastq.gz", 
+								"file1= ", os.path.abspath(input.fastq1)
+								),
+		fastq2 = lambda wildcards, input: format_sed_filename(
+								"file2= $VSeqToolkit/testDir/testData/testDataCombined.R2.fastq.gz", 
+								"file2= ", os.path.abspath(input.fastq2)
+								),	
+		out_dir = lambda wildcards, output: format_sed_filename(
+								"outDir= $VSeqToolkit/testDir/testResultsCheck/", 
+								"outDir= ", f"{os.path.abspath(os.path.splitext(os.path.splitext(output.config)[0])[0])}/",
+								),
+		vec_idx = lambda wildcards, input: format_sed_filename(
+								"vecRef= $VSeqToolkit/testDir/testReferenceIndex/vector1.fa", 
+								"vecRef= ", os.path.abspath(os.path.splitext(input.vec_idx[0])[0]),
+								),
+		combined_idx = lambda wildcards, input: format_sed_filename(
+								"vecGenRef= $VSeqToolkit/testDir/testReferenceIndex/hg38chr22Vector1.fa", 
+								"vecGenRef= ", os.path.abspath(os.path.splitext(input.combined_idx[0])[0]),
+								),
+		annoTable = lambda wildcards: format_sed_command(wildcards, analysis_df, 
+								"annoTable= $VSeqToolkit/testDir/testReferenceIndex/refSeqUCSCTablehg38.txt", 
+								"annoTable= ", 'host_table'),
+
+		
+		adapter1 = lambda wildcards: format_sed_command(wildcards, analysis_df, 
+																										"adapter1=GATCGGAAGAGCACACGTCTGAACTCCAGTCAC", 
+																											"adapter1=", 'adapter_1'),
+		adapter2 = lambda wildcards: format_sed_command(wildcards, analysis_df, 
+																		"adapter2=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT", 
+																		"adapter2=", 'adapter_2'),
+		qual = lambda wildcards: format_sed_command_int(wildcards, analysis_df, 
+																								"qua=20","qua=", 'qual'),
+		lenPer = lambda wildcards: format_sed_command_int(wildcards, analysis_df, 
+																									"lenPer=50","lenPer=", 'lenPer'),
+		mode = lambda wildcards: format_sed_command(wildcards, analysis_df, 
+																									"mode=default","mode=", 'mode'),
+		contAna = lambda wildcards: format_sed_filename("contAna=true", "contAna=", "false"),
+		vecVecFusion = lambda wildcards: format_sed_command(wildcards, analysis_df, 
+																											"vecVecFusion=true","vecVecFusion=",
+																												 'vecVecFusion'),
+		stringencyVec = lambda wildcards: format_sed_command(wildcards, analysis_df, 
+																													"stringencyVec=low","stringencyVec=",
+																													 'stringencyVec'),
+		UMthresholdVec = lambda wildcards: format_sed_command(wildcards, analysis_df, 
+																														"UMthresholdVec=0.95","UMthresholdVec=",
+																														 'UMthresholdVec'),		
+		minMapSpanVec = lambda wildcards: format_sed_command_int(wildcards, analysis_df, 
+																														"minMapSpanVec=20","minMapSpanVec=",
+																														'minMapSpanVec'),	
+		distVecVec = lambda wildcards: format_sed_command_int(wildcards, analysis_df, 
+																												"distVecVec=10","distVecVec=",
+																												'distVecVec'),	
+		opVecVec = lambda wildcards: format_sed_command_int(wildcards, analysis_df, 
+																											"opVecVec=5","opVecVec=",
+																											'opVecVec'),
+		idenVecVec = lambda wildcards: format_sed_command_int(wildcards, analysis_df, 
+																											"idenVecVec=95","idenVecVec=",
+																											'idenVecVec'),		
+		stringencyVecGen = lambda wildcards: format_sed_command(wildcards, analysis_df, 
+																														"stringencyVecGen=low","stringencyVecGen=",
+																														 'stringencyVecGen'),			
+		UMthresholdVecGen = lambda wildcards: format_sed_command(wildcards, analysis_df, 
+																															"UMthresholdVecGen=0.95",
+																															"UMthresholdVecGen=",
+																														 	'UMthresholdVecGen'),	
+		minMapSpanVecGen = lambda wildcards: format_sed_command_int(wildcards, analysis_df, 
+																														"minMapSpanVecGen=20",
+																														"minMapSpanVecGen=",
+																														'minMapSpanVecGen'),	
+		distVecGen = lambda wildcards: format_sed_command_int(wildcards, analysis_df, 
+																											"distVecGen=10","distVecGen=",
+																											'distVecGen'),	
+		opVecGen = lambda wildcards: format_sed_command_int(wildcards, analysis_df, 
+																										"opVecGen=5","opVecGen=",
+																										'opVecGen'),			
+		idenVecGen = lambda wildcards: format_sed_command_int(wildcards, analysis_df, 
+																												"idenVecGen=95","idenVecGen=",
+																												'idenVecGen'),			
+		clusterRange = lambda wildcards: format_sed_command_int(wildcards, analysis_df, 
+																													"clusterRange=3","clusterRange=",
+																													'clusterRange'),	 
 	container:
 		"docker://szsctt/vseq:1"
 	shell:
 		"""
 		cp /var/work/VSeq-Toolkit/config.test.txt {output.config}
-		sed -i 's#file1= $VSeqToolkit/testDir/testData/testDataCombined.R1.fastq.gz#file1= {params.fastq1}#g' {output.config}
-		sed -i 's#file2= $VSeqToolkit/testDir/testData/testDataCombined.R2.fastq.gz#file2= {params.fastq2}#g' {output.config}
-		sed -i 's#outDir= $VSeqToolkit/testDir/testResultsCheck/#outDir= {params.out_dir}/#g' {output.config}
-		sed -i 's/qua=20/qua={params.qual}/g' {output.config}
-		sed -i 's/lenPer=50/lenPer={params.lenPer}/g' {output.config}
-		sed -i 's/adapter1=GATCGGAAGAGCACACGTCTGAACTCCAGTCAC/adapter1={params.adapter1}/g' {output.config}
-		sed -i 's/adapter2=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT/adapter2={params.adapter2}/g' {output.config}
-		sed -i 's/mode=default/mode={params.mode}/g' {output.config}
-		sed -i 's/contAna=true/contAna=false/g' {output.config}		
-		sed -i 's/vecVecFusion=true/vecVecFusion={params.vecVecFusion}/g' {output.config}
-		sed -i 's#vecRef= $VSeqToolkit/testDir/testReferenceIndex/vector1.fa#vecRef= {params.vec_idx}#g' {output.config}
-		sed -i 's/stringencyVec=low/stringencyVec={params.stringencyVec}/g'  {output.config}
-		sed -i 's/UMthresholdVec=0.95/UMthresholdVec={params.UMthresholdVec}/g' {output.config}
-		sed -i 's/minMapSpanVec=20/minMapSpanVec={params.minMapSpanVec}/g' {output.config}		
-		sed -i 's/distVecVec=10/distVecVec={params.distVecVec}/g' {output.config}		
-		sed -i 's/opVecVec=5/opVecVec={params.opVecVec}/g' {output.config}		
-		sed -i 's/idenVecVec=95/idenVecVec={params.idenVecGen}/g' {output.config}		
-		sed -i 's#vecGenRef= $VSeqToolkit/testDir/testReferenceIndex/hg38chr22Vector1.fa#vecGenRef= {params.combined_idx}#g' {output.config}
-		sed -i 's/stringencyVecGen=low/stringencyVecGen={params.stringencyVecGen}/g' {output.config}
-		sed -i 's/UMthresholdVecGen=0.95/UMthresholdVecGen={params.UMthresholdVecGen}/g' {output.config}
-		sed -i 's/minMapSpanVecGen=20/minMapSpanVecGen={params.minMapSpanVecGen}/g' {output.config}
-		sed -i 's/distVecGen=10/distVecGen={params.distVecGen}/g' {output.config}
-		sed -i 's/opVecGen=/opVecGen={params.opVecGen}/g' {output.config}
-		sed -i 's/idenVecGen=/idenVecGen={params.idenVecGen}/g' {output.config}
-		sed -i 's/clusterRange=3/clusterRange={params.clusterRange}/g' {output.config}
-		sed -i 's#annoTable= $VSeqToolkit/testDir/testReferenceIndex/refSeqUCSCTablehg38.txt#annoTable= {params.annoTable}#g' {output.config}
+		sed -i {params} {output.config}
 		"""
 		
 rule vseq_toolkit:
@@ -196,25 +158,15 @@ rule vseq_toolkit:
 	threads: 10 # hard-coded into scripts that run bwa-mem?
 	resources:
 		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.combined_genome, input.vec_genome), attempt, 20000),
-		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
+		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1	
 	shell:
 		"""
-		#CONFIG=$(realpath {input.config})
-		#cd $(dirname {output.csv})
-		
-		#perl /var/work/VSeq-Toolkit/scripts/VSeq-TK.pl -c $CONFIG
-		
-		#if [ ! -e $(basename {output.csv}) ]; then
-		#	touch $(basename {output.csv})
-		#fi
-		
-		perl /var/work/VSeq-Toolkit/scripts/VSeq-TK.pl -c {input.config}
+		perl -I $VSeqToolkit/scripts/ $VSeqToolkit/scripts/VSeq-TK.pl -c $(realpath {input.config})
 		
 		if [ ! -e {output.csv} ]; then
 			touch {output.csv}
 		fi
-		
 		"""		
 		
 				
