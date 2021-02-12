@@ -67,7 +67,6 @@ test:
      opVecGen: 5
      idenVecGen: 95
      clusterRange: 3
-     host_info:
-       human: # fasta will be used from general analysis_hosts
-         mappability: "$VSeqToolkit/testDir/testReferenceIndex/refSeqUCSCTablehg38.txt"
+     host_table:
+       human: "$VSeqToolkit/testDir/testReferenceIndex/refSeqUCSCTablehg38.txt"
 

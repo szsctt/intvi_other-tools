@@ -152,7 +152,10 @@ rule vseq_toolkit:
 		fastq2 = lambda wildcards: get_input_reads(wildcards, analysis_df, 2),
 		config = rules.vseq_toolkit_config_template.output.config
 	output:
-		csv = "{outpath}/{dset}/vseq_toolkit/{samp}.{host}.{virus}/ISGenomeVector.csv"
+		clust = "{outpath}/{dset}/vseq_toolkit/{samp}.{host}.{virus}/ISGenomeVector.csv",
+		nonUnique = "{outpath}/{dset}/vseq_toolkit/{samp}.{host}.{virus}/ISGenomeVector.NonUniqueGenome.csv",
+		unique = "{outpath}/{dset}/vseq_toolkit/{samp}.{host}.{virus}/ISGenomeVector.UniqueGenome.csv",
+		unclust = "{outpath}/{dset}/vseq_toolkit/{samp}.{host}.{virus}/ISGenomeVector.Unclustered.csv"
 	container:
 		"docker://szsctt/vseq:1"
 	threads: 10 # hard-coded into scripts that run bwa-mem?
@@ -164,8 +167,11 @@ rule vseq_toolkit:
 		"""
 		perl -I $VSeqToolkit/scripts/ $VSeqToolkit/scripts/VSeq-TK.pl -c $(realpath {input.config})
 		
-		if [ ! -e {output.csv} ]; then
-			touch {output.csv}
+		if [ ! -e {output.clust} ]; then
+			touch {output.clust}
+			touch {output.nonUnique}
+			touch {output.unique}
+			touch {output.unclust}
 		fi
 		"""		
 		

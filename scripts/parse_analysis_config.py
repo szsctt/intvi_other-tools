@@ -305,7 +305,7 @@ def make_vseq_rows(config, dataset):
 	
 	qual = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'qua', vseq_default_qua, 'vseq_toolkit_params')
 	lenPer = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'lenPer', vseq_default_lenPer, 'vseq_toolkit_params')
-	mode = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'mode', vseq_default_lenPer, 'vseq_toolkit_params')
+	mode = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'mode', vseq_default_mode, 'vseq_toolkit_params')
 	vecVecFusion = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'vecVecFusion', vseq_default_vecVecFusion, 'vseq_toolkit_params')
 	stringencyVec = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'stringencyVec', vseq_default_stringencyVec, 'vseq_toolkit_params')
 	UMthresholdVec = get_list_with_default(config[dataset]['vseq_toolkit_params'], 'UMthresholdVec', vseq_default_UMthresholdVec, 'vseq_toolkit_params')
@@ -324,12 +324,12 @@ def make_vseq_rows(config, dataset):
 	# for each host, get the 'annoTable'
 	annoTable = {}
 	for host in config[dataset]['analysis_hosts'].keys():
-		if host not in config[dataset]['vseq_toolkit_params']['host_info']:
+		if host not in config[dataset]['vseq_toolkit_params']['host_table']:
 			print(f"host_info not provided: skipping VSeq-Toolkit for {host}")
 			continue	
 		if host not in annoTable:
 			annoTable[host] = []
-		annoTable[host].append(config[dataset]['vseq_toolkit_params']['host_info'][host]['host_table'])				
+		annoTable[host].append(config[dataset]['vseq_toolkit_params']['host_table'][host])				
 		
 	for (qual_i, lenPer_i, mode_i, vecVecFusion_i, stringencyVec_i, UMthresholdVec_i,
 			minMapSpanVec_i, distVecVec_i, opVecVec_i, idenVecVec_i, stringencyVecGen_i,

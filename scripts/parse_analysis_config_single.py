@@ -72,7 +72,12 @@ def parse_analysis_config(config):
 									'flank_region_size', 'sensitivity_level', 
 									'min_contig_length', 'blastn_evalue_thrd', 
 									'similarity_thrd', 
-									'chop_read_length', 'minIdentity')		
+									'chop_read_length', 'minIdentity', 'qual', 'lenPer',
+									'mode', 'vecVecFusion', 'stringencyVec', 'UMthresholdVec',
+									'minMapSpanVec', 'distVecVec', 'opVecVec', 'idenVecVec',
+									'stringencyVecGen', 'UMthresholdVecGen', 'minMapSpanVecGen', 'distVecGen', 'opVecGen',
+									'idenVecGen', 'clusterRange', 'host_table'
+									)			
 
 	analysis_conditions = []
 	
@@ -198,7 +203,7 @@ def make_vseq_rows(config, dataset):
 	
 	qual = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'qua', vseq_default_qua, 'vseq_toolkit_params')
 	lenPer = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'lenPer', vseq_default_lenPer, 'vseq_toolkit_params')
-	mode = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'mode', vseq_default_lenPer, 'vseq_toolkit_params')
+	mode = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'mode', vseq_default_mode, 'vseq_toolkit_params')
 	vecVecFusion = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'vecVecFusion', vseq_default_vecVecFusion, 'vseq_toolkit_params')
 	stringencyVec = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'stringencyVec', vseq_default_stringencyVec, 'vseq_toolkit_params')
 	UMthresholdVec = get_entry_with_default(config[dataset]['vseq_toolkit_params'], 'UMthresholdVec', vseq_default_UMthresholdVec, 'vseq_toolkit_params')
@@ -218,8 +223,9 @@ def make_vseq_rows(config, dataset):
 	
 	assert len(config[dataset]['analysis_host'].keys()) == 1
 	host = list(config[dataset]['analysis_host'].keys())[0]
-	assert host in config[dataset]['vseq_toolkit_params']['host_info']
-	annoTable = config[dataset]['vseq_toolkit_params']['host_info'][host]			
+	assert 'host_table' in config[dataset]['vseq_toolkit_params']
+	assert host in config[dataset]['vseq_toolkit_params']['host_table']
+	annoTable = config[dataset]['vseq_toolkit_params']['host_table'][host]
 		
 	row = {
 				'host_table' 		: annoTable,																
