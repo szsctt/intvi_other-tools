@@ -12,7 +12,7 @@ rule bwa_index:
 	container:
 		"docker://szsctt/vseq:1"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.genome, ), attempt),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.genome, ), attempt, 2, 1000),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1	
 	shell:

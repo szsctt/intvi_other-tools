@@ -9,7 +9,7 @@ rule host_virus_index_seeksv:
 	container:
 		"docker://szsctt/seeksv:1"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.host, input.virus), attempt, 5),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max((input.host, input.virus), attempt, 5, 1000),
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	shell:
@@ -32,7 +32,7 @@ rule align_seeksv_all:
 	container:
 		"docker://szsctt/seeksv:1"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.idx, attempt, 5),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.idx, attempt, 5, 1000),
 		nodes = 1,
 		time = lambda wildcards, attempt: ('2:00:00', '24:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 	shell:
@@ -134,7 +134,7 @@ rule align_seeksv_clip:
 	output:
 		bam = "{outpath}/{dset}/seeksv/aln/{samp}.{host}.{virus}.clip.bam"
 	resources:
-		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.idx, attempt, 5),
+		mem_mb= lambda wildcards, attempt, input: resources_list_with_min_and_max(input.idx, attempt, 5, 1000),
 		time = lambda wildcards, attempt: ('30:00', '2:00:00', '24:00:00', '7-00:00:00')[attempt - 1],
 		nodes = 1
 	threads: 8
