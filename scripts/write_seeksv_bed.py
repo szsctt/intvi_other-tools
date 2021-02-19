@@ -40,7 +40,8 @@ def main(args):
 					start = int(row['left_pos']) + int(row['microhomology_length'])		
 					stop = int(row['left_pos'])	
 					
-				write_row = (row['@left_chr'], start, stop, row['left_strand'])
+				#write_row = (row['@left_chr'], start, stop, row['left_strand'])
+				write_row = (row['@left_chr'], start, stop)
 				writer.writerow(write_row)
 				
 			elif row['right_chr'] in chroms:
@@ -51,7 +52,8 @@ def main(args):
 					start = int(row['right_pos']) +  int(row['microhomology_length'])
 					stop = int(row['right_pos'])		
 			
-				write_row = (row['right_chr'], row['right_pos'], row['right_pos'], row['right_strand'])
+				#write_row = (row['right_chr'], row['right_pos'], row['right_pos'], row['right_strand'])
+				write_row = (row['right_chr'], row['right_pos'], row['right_pos'])
 				writer.writerow(write_row)
 	
 	

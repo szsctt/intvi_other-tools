@@ -27,7 +27,8 @@ def main(args):
 			start = int(row['GenomicPosition'])
 			stop = int(row['GenomicPosition']) + int(row['OverlapFusion']) + int(row['DistanceFusion'])
 			
-			write_row = (row['Chr'], start, stop, row['StrandGenomic'])
+			#write_row = (row['Chr'], start, stop, row['StrandGenomic'])
+			write_row = (row['Chr'], start, stop)
 			writer.writerow(write_row)
 	
 	
