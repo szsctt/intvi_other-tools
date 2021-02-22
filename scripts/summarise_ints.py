@@ -11,7 +11,7 @@ def main(args):
 	parser.add_argument('--threshold', help='Theshold for true positive', required=True, type=int)
 	parser.add_argument('--threshold-col', help='Column to apply theshold to', required=True)	
 	parser.add_argument('--output', '-o', help='Output file', default='ints_summary.tsv')
-	parser.add_argument('--tool', help='Tool used for analysis')
+	parser.add_argument('--tool', help='Tool used for analysis', required=True)
 	args = parser.parse_args(args[1:])
 	
 	# count true positives, false positives, false negatives
@@ -39,24 +39,25 @@ def count_threshold(file, threshold_col, threshold):
 	count number of lines with distances below and above theshold
 	"""
 	pos, neg = 0, 0
+	tied = []
+	last = (0, 0, 0, 0, 0, 0)
 	with open(file, newline='') as csvfile:
 		reader = csv.DictReader(csvfile, delimiter="\t")
 		
 		for row in reader:
-			# if no simulated to this output integration (ie on wrong chromosome)
-			try:
-				if int(row[threshold_col]) == -1:
-					neg +=1
-					continue
-			except ValueError:
-				pass
-			# if distance is above threshold, also is false positive
-			if float(row[threshold_col]) > threshold:
+
+			dist = float(row[f"d_{threshold_col}"])
+			
+			if dist < 0:
+				neg += 1
+			elif dist > threshold:
 				neg += 1
 			else:
 				pos += 1
 				
 	return pos, neg
+
+	
 
 if __name__ == "__main__":
 	main(sys.argv)
