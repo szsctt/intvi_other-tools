@@ -99,28 +99,28 @@ rule verse:
 		cd {params.workdir}
 		
 		# write config file
-		echo "fastq1 = $(realpath {input.fastq1})" > {output.config}
-  	echo "fastq2 = $(realpath {input.fastq2})" >> {output.config}
-  	echo 'detect_integration = yes' >> {output.config}
-  	echo 'detect_mutation = no' >> {output.config}
-  	echo 'thread_no = {verse_threads}' >> {output.config}
-  	echo 'blastn_bin = /usr/bin/blastn' >> {output.config}
-  	echo 'bowtie_bin = /usr/bin/bowtie2' >> {output.config}
-  	echo 'bwa_bin = /usr/bin/bwa' >> {output.config}
-  	echo 'trinity_script = /trinityrnaseq_r2013-02-16/Trinity.pl' >> {output.config}
-  	echo 'SVDetect_dir = /SVDetect_r0.8' >> {output.config}
-  	echo 'virus_database = {params.virus_fa}' >> {output.config}
-  	echo 'bowtie_index_human = {params.host_bowtie}' >> {output.config}
-  	echo 'blastn_index_human = {params.host_blast}' >> {output.config}
-  	echo 'blastn_index_virus = {params.virus_blast}' >> {output.config}
-  	echo 'detection_mode     = {params.detection_mode}' >> {output.config}
+		echo "fastq1 = $(readlink -f {input.fastq1})" > {output.config}
+		echo "fastq2 = $(readlink -f {input.fastq2})" >> {output.config}
+		echo 'detect_integration = yes' >> {output.config}
+		echo 'detect_mutation = no' >> {output.config}	
+		echo 'thread_no = {verse_threads}' >> {output.config}
+  		echo 'blastn_bin = /usr/bin/blastn' >> {output.config}
+		echo 'bowtie_bin = /usr/bin/bowtie2' >> {output.config}
+		echo 'bwa_bin = /usr/bin/bwa' >> {output.config}
+		echo 'trinity_script = /trinityrnaseq_r2013-02-16/Trinity.pl' >> {output.config}
+		echo 'SVDetect_dir = /SVDetect_r0.8' >> {output.config}
+		echo 'virus_database = {params.virus_fa}' >> {output.config}
+		echo 'bowtie_index_human = {params.host_bowtie}' >> {output.config}
+		echo 'blastn_index_human = {params.host_blast}' >> {output.config}
+		echo 'blastn_index_virus = {params.virus_blast}' >> {output.config}
+		echo 'detection_mode     = {params.detection_mode}' >> {output.config}
 		echo 'flank_region_size  = {params.flank_region_size}' >> {output.config}
 		echo 'sensitivity_level  = {params.sensitivity_level}' >> {output.config}
-  	echo 'min_contig_length = {params.min_contig_length}' >> {output.config}
-  	echo 'blastn_evalue_thrd = {params.blastn_evalue_thrd}' >> {output.config}
-  	echo 'similarity_thrd = {params.similarity_thrd}' >> {output.config}
-  	echo 'chop_read_length = {params.chop_read_length}' >> {output.config}
-  	echo 'minIdentity = {params.minIdentity}' >> {output.config}
+		echo 'min_contig_length = {params.min_contig_length}' >> {output.config}
+		echo 'blastn_evalue_thrd = {params.blastn_evalue_thrd}' >> {output.config}
+		echo 'similarity_thrd = {params.similarity_thrd}' >> {output.config}
+		echo 'chop_read_length = {params.chop_read_length}' >> {output.config}
+		echo 'minIdentity = {params.minIdentity}' >> {output.config}
 		
 		perl /var/work/VirusFinder2.0/VirusFinder.pl -c {output.config}
 		
