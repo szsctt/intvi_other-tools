@@ -18,13 +18,12 @@ def main(args):
 	tp, fn = count_threshold(args.sim_to_found, args.threshold_col, args.threshold)
 	_, fp =  count_threshold(args.found_to_sim, args.threshold_col, args.threshold)
 	
-	
 	# write output
 	with open(args.output, "w") as output_file:
 		header = ('sim_to_found', 'found_to_sim', 'tool', 'window', 
 					'coords_score_type', 'tp', 'fp', 'fn')
 		results = (args.sim_to_found, args.found_to_sim, args.tool, str(args.threshold),
-					args.threshold_col, str(tp), str(fn), str(fp))
+					args.threshold_col, str(tp), str(fp), str(fn))
 					
 		
 		output_file.write("\t".join(header) + "\n")
