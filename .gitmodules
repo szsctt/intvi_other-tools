@@ -7,3 +7,6 @@
 [submodule "docker/VSeq-Toolkit/VSeq-Toolkit"]
 	path = docker/VSeq-Toolkit/VSeq-Toolkit
 	url = https://github.com/CompMeth/VSeq-Toolkit.git
+[submodule "docker/seeksv/seeksv"]
+	path = docker/seeksv/seeksv
+	url = https://github.com/qiukunlong/seeksv.git
